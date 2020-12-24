@@ -1,0 +1,25 @@
+syntax = "proto3";
+option java_multiple_files = true;//以非外部类模式生成
+package cacheCenter;
+/*
+设计原则:
+        1. header 与 follower 是双向流式的
+        2. follower 与 client  仅响应式流式的
+*/
+option java_package = "com.liangchen.cacheCenter";
+option java_outer_classname = "cacheCenter";
+service cacheCenterService{
+    rpc Put(Request)returns(Response){}
+    rpc Add(Request)returns(Response){}
+    rpc Get(Request)returns(Response){}
+}
+
+//follower 向 header 注册服务
+message Request {
+    string  key = 1;
+    string  value = 2;
+}
+message Response{
+    int32 errno = 1;
+    string data = 2;
+}

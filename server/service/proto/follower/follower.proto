@@ -1,0 +1,45 @@
+syntax = "proto3";
+option java_multiple_files = true;//以非外部类模式生成
+package DMQFollower;
+/*
+设计原则:
+        1. header 与 follower 是双向流式的
+        2. follower 与 client  仅响应式流式的
+*/
+option java_package = "com.liangchen.DMQFollowerProto";
+option java_outer_classname = "DMQFollowerProto";
+service DMQFollowerService{
+    // 客户端向 follower 发送数据
+    rpc ClientYieldMsgDataRequest(stream MessageData)returns (Response){}
+
+    // 客户端消费数据
+    rpc ClientConsumeData(ClientRegistToFollower)returns(stream Response){}
+
+    // 客户端关闭管道
+    rpc ClientCloseChannel(ClientRegistToFollower)returns(Response){}
+}
+
+//follower 向 header 注册服务
+message FollowerRegistToHeader{
+    string address = 1;         // 绑定的ip 地址
+    int32 port    = 2;         // 绑定的 端口
+}
+
+// 客户端向 follower 节点注册服务
+message ClientRegistToFollower{
+    string nodeid    = 1;       // 节点id
+    string groupname = 2;       // 消费者组名
+    string topic     = 3;       // 话题名称
+}
+message MessageData {
+    string topic = 1;       // 数据对应的topic
+    string message = 2;     // 真正的数据
+    int64  length  = 3;
+    string des     = 4;     // 附加信息
+}
+// 响应信息
+message Response{
+    int32 errno = 1;
+    string errmsg = 2;
+    MessageData data = 3;
+}

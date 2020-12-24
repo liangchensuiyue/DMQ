@@ -1,0 +1,69 @@
+syntax = "proto3";
+option java_multiple_files = true;//以非外部类模式生成
+package DMQHeader;
+/*
+设计原则:
+        1. header 与 follower 是双向流式的
+        2. follower 与 client  仅响应式流式的
+*/
+option java_package = "com.liangchen.DMQHeaderProto";
+option java_outer_classname = "DMQHeaderProto";
+service DMQHeaderService{
+
+    //follower 向 header 注册服务
+    rpc FollowerRegistToHeaderRequest(FollowerRegistToHeader) returns (Response){}
+
+    // follower 向 header 请求消费者群组对应的topic数据
+    // 并将 follower => topic 这种关系记录下来,等对应topic有新的数据的时候通知对应follower
+    rpc FollowerToHeaderRequestDataRequest(stream FollowerToHeaderRequestData) returns ( stream Response){}
+
+    // 当 follower 中注册的topic客户端减少到0时. 该  follower节点就不用接收该topic服务了,应该向header节点注销该topic
+    rpc FollowerCancelTopicRequest( FollowerCancelTopic)returns(Response){}
+
+    rpc FollowerYieldMsgDataRequest(stream MessageData)returns (Response){}
+
+}
+// 客户端向 follower 节点注册服务
+message ClientRegistToFollower{
+    string groupname = 1;       // 消费者组名
+    string topic     = 2;       // 话题名称
+}
+
+//follower 向 header 注册服务
+message FollowerRegistToHeader{
+    string address = 1;         // 绑定的ip 地址
+    int32 port    = 2;         // 绑定的 端口
+}
+
+// 当 follower 中注册的topic客户端减少到0时. 该  follower节点就不用接收该topic服务了,应该向header节点注销该topic
+message FollowerCancelTopic{
+    string address = 1;         // 绑定的ip 地址
+    int32 port    = 2;         // 绑定的 端口
+    string topic = 3;
+}
+
+// follower 向 header 请求消费者群组对应的topic数据
+// 并将 follower => topic 这种关系记录下来,等对应topic有新的数据的时候通知对应follower
+message FollowerToHeaderRequestData{
+    string groupname = 1;       // 消费者组名
+    string topic     = 2;       // 话题名称
+    string address = 3;         // 绑定的ip 地址
+    int32 port    = 4;         // 绑定的 端口
+    int64 offset = 5;           // 偏移量
+}
+
+
+
+
+message MessageData {
+    string topic = 1;       // 数据对应的topic
+    string message = 2;     // 真正的数据
+    int64 length   = 3;     // 数据长度
+    string des     = 4;     // 附加信息
+}
+// 响应信息
+message Response{
+    int32 errno = 1;
+    string errmsg = 2;
+    MessageData data = 3;
+}
