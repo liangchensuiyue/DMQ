@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
 	"os"
 	"server/mylog"
 	cachepd "server/service/proto/cache"
@@ -15,14 +17,20 @@ import (
 	"sync"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
+
+	"golang.org/x/net/websocket"
+
 	"google.golang.org/grpc"
 )
 
 type clientNode struct {
-	nodeId    string
-	groupname string
-	topic     string
-	out       pd.DMQFollowerService_ClientConsumeDataServer
+	nodeId     string
+	groupname  string
+	clientType string
+	topic      string
+	conn       *websocket.Conn
+	out        pd.DMQFollowerService_ClientConsumeDataServer
 }
 
 var cacheServiceClient cachepd.CacheCenterServiceClient
@@ -96,9 +104,10 @@ func (this *server) ClientConsumeData(request *pd.ClientRegistToFollower, in pd.
 	if topicList[topic][group] == nil {
 		topicList[topic][group] = make([]clientNode, 0)
 	}
-	topicList[topic][group] = append(topicList[topic][group], clientNode{topic: topic, groupname: group, out: in, nodeId: request.Nodeid})
+	topicList[topic][group] = append(topicList[topic][group], clientNode{topic: topic, groupname: group, out: in, nodeId: request.Nodeid, clientType: "tcp", conn: nil})
 	res, err := cacheServiceClient.Get(context.Background(), &cachepd.Request{Key: request.Topic + "_" + request.Groupname})
 	if err != nil {
+		mylog.Error(err.Error())
 		return nil
 	}
 	_v, _ := strconv.Atoi(res.Data)
@@ -216,7 +225,13 @@ func acceptData() {
 					break
 				}
 				i := rand.Intn(len(consumerList[data.Des]))
-				err := consumerList[data.Des][i].out.Send(&pd.Response{Errno: 0, Data: &pd.MessageData{Topic: data.Topic, Message: data.Message, Length: data.Length - 1}})
+				var err error
+				if consumerList[data.Des][i].clientType == "ws" {
+					msg, _ := json.Marshal(&pd.Response{Errno: 0, Data: &pd.MessageData{Topic: data.Topic, Message: data.Message, Length: data.Length - 1}})
+					err = websocket.Message.Send(consumerList[data.Des][i].conn, string(msg))
+				} else {
+					err = consumerList[data.Des][i].out.Send(&pd.Response{Errno: 0, Data: &pd.MessageData{Topic: data.Topic, Message: data.Message, Length: data.Length - 1}})
+				}
 
 				// 发送成功后 更新 offset
 				if err == nil {
@@ -265,8 +280,14 @@ func acceptData() {
 						break
 					}
 					i := rand.Intn(len(consumerList[p]))
+					var err error
+					if consumerList[p][i].clientType == "ws" {
+						msg, _ := json.Marshal(&pd.Response{Errno: 0, Data: &pd.MessageData{Topic: data.Topic, Message: data.Message, Length: data.Length - 1}})
+						err = websocket.Message.Send(consumerList[p][i].conn, string(msg))
+					} else {
+						err = consumerList[p][i].out.Send(&pd.Response{Errno: 0, Data: &pd.MessageData{Topic: data.Topic, Message: data.Message, Length: data.Length - 1}})
 
-					err := consumerList[p][i].out.Send(&pd.Response{Errno: 0, Data: &pd.MessageData{Topic: data.Topic, Message: data.Message, Length: data.Length - 1}})
+					}
 
 					// 发送成功后 更新 offset
 					if err == nil {
@@ -309,6 +330,104 @@ func acceptData() {
 		}
 	}
 }
+func startWebsocket(conf *utils.MyConfig) {
+	http.Handle("/consumer", websocket.Handler(ws_consumer))
+	http.Handle("/producer", websocket.Handler(ws_producer))
+	if err := http.ListenAndServe(conf.G_Ws_Address, nil); err != nil {
+		mylog.Error("error: " + err.Error())
+		os.Exit(0)
+	}
+}
+
+//ClientRegistToFollower
+func ws_consumer(conn *websocket.Conn) {
+	var request *pd.ClientRegistToFollower = &pd.ClientRegistToFollower{}
+	defer conn.Close()
+	for {
+		var reply string
+		if err := websocket.Message.Receive(conn, &reply); err != nil {
+			res, _ := json.Marshal(&pd.Response{Errno: 1, Errmsg: err.Error()})
+			websocket.Message.Send(conn, string(res))
+			mylog.Error(err.Error())
+			break
+		}
+		err := json.Unmarshal([]byte(reply), request)
+		if err != nil {
+			res, _ := json.Marshal(&pd.Response{Errno: 1, Errmsg: "请求格式错误"})
+			websocket.Message.Send(conn, string(res))
+			mylog.Error(err.Error())
+			return
+		}
+
+		key := request.Key // 客户端密钥
+		var topic string
+		var group string
+		topic = request.Topic
+		group = request.Groupname
+		if key == "" || group == "" || topic == "" {
+			res, _ := json.Marshal(&pd.Response{Errno: 1, Errmsg: "参数错误"})
+			websocket.Message.Send(conn, string(res))
+			return
+		}
+		u1 := uuid.NewV4()
+		str, _ := u1.MarshalText()
+		request.Nodeid = string(str)
+		_res, rerr := headerService.ProofClientRequest(context.Background(), &headerpd.ProofClient{
+			Key: key,
+		})
+		if rerr != nil || _res.Errno == 1 {
+			res, _ := json.Marshal(&pd.Response{Errno: 1, Errmsg: "密钥错误"})
+			websocket.Message.Send(conn, string(res))
+			return
+		}
+
+		if topicList[topic] == nil {
+			topicList[topic] = make(map[string][]clientNode, 0)
+		}
+		if topicList[topic][group] == nil {
+			topicList[topic][group] = make([]clientNode, 0)
+		}
+		topicList[topic][group] = append(topicList[topic][group], clientNode{topic: topic, groupname: group, out: nil, nodeId: request.Nodeid, clientType: "ws", conn: conn})
+		res, err := cacheServiceClient.Get(context.Background(), &cachepd.Request{Key: request.Topic + "_" + request.Groupname})
+		if err != nil {
+			return
+		}
+		_v, _ := strconv.Atoi(res.Data)
+		offset := int64(_v)
+		fmt.Println(offset, "offset")
+		followerToHeaderRequestClient.Send(&headerpd.FollowerToHeaderRequestData{Groupname: group, Topic: topic, Offset: offset})
+		for {
+			time.Sleep(time.Second * 1)
+			_, ok := clientNodeDead[request.Nodeid]
+			if ok {
+				delete(clientNodeDead, request.Nodeid)
+				return
+			}
+		}
+
+	}
+}
+
+func ws_producer(conn *websocket.Conn) {
+	// for {
+	// 	var reply string
+	// 	if error = websocket.Message.Receive(w, &reply); error != nil {
+	// 		fmt.Println("不能够接受消息 error==", error)
+	// 		break
+	// 	}
+	// 	msg := "我已经收到消息 Received:" + reply
+	// 	//  连接的话 只能是   string；类型的啊
+	// 	fmt.Println("发给客户端的消息： " + msg)
+
+	// 	go func() {
+	// 		time.Sleep(time.Second * 4)
+	// 		if error = websocket.Message.Send(w, msg); error != nil {
+	// 			fmt.Println("不能够发送消息 悲催哦")
+
+	// 		}
+	// 	}()
+	// }
+}
 func StartFollower(conf *utils.MyConfig) {
 	followerconfig = conf
 	// initGlobalVar()
@@ -316,6 +435,7 @@ func StartFollower(conf *utils.MyConfig) {
 	linkHeader(conf)
 	go receiveHeaderData()
 	go acceptData()
+	go startWebsocket(conf)
 	linkCache(conf)
 
 	//创建网络

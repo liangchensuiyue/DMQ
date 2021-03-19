@@ -21,6 +21,7 @@ type MyConfig struct {
 	G_Cache_Address                   string
 	G_Cache_Port                      int
 	G_Max_Register                    int // follower 最大注册消费者数
+	G_Ws_Address                      string
 	G_Offset_Cache_Write_To_Dish_Time int
 }
 
@@ -43,6 +44,7 @@ func InitConfig(configpath string) *MyConfig {
 		os.Exit(0)
 	}
 	myconfig.G_Current_Platform = runtime.GOOS
+	myconfig.G_Ws_Address = appconf.String("ws_addr") + ":" + appconf.String("ws_port")
 	myconfig.G_Header_Address = appconf.String("header_address")
 	myconfig.G_Header_Port, err = appconf.Int("header_port")
 	if err != nil {
