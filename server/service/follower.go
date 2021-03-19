@@ -32,10 +32,22 @@ var followerMsgChan chan *headerpd.Response = make(chan *headerpd.Response, 100)
 var headerService headerpd.DMQHeaderServiceClient
 var followerconfig *utils.MyConfig
 var clientNodeDead map[string]bool = make(map[string]bool, 0)
+var authNode map[string]bool = make(map[string]bool, 0) // 已授权的客户端
 var SendLock *sync.Mutex = &sync.Mutex{}
 
 // 客户端生产数据
 func (this *server) ClientYieldMsgDataRequest(in pd.DMQFollowerService_ClientYieldMsgDataRequestServer) error {
+
+	onepackage, _ := in.Recv()
+	key := onepackage.Key // 客户端密钥
+	_res, rerr := headerService.ProofClientRequest(context.Background(), &headerpd.ProofClient{
+		Key: key,
+	})
+	if rerr != nil || _res.Errno == 1 {
+		in.SendAndClose(&pd.Response{Errno: 1, Errmsg: "密钥错误"})
+		return nil
+	}
+
 	res, err := headerService.FollowerYieldMsgDataRequest(context.Background())
 	if err != nil {
 		in.SendAndClose(&pd.Response{Errno: 1, Errmsg: err.Error()})
@@ -47,7 +59,7 @@ func (this *server) ClientYieldMsgDataRequest(in pd.DMQFollowerService_ClientYie
 		err1 := res.Send(&headerpd.MessageData{Topic: info.Topic, Message: info.Message})
 		SendLock.Unlock()
 		if err1 != nil {
-			in.SendAndClose(&pd.Response{Errno: 1, Errmsg: err.Error()})
+			in.SendAndClose(&pd.Response{Errno: 1, Errmsg: err1.Error()})
 			return nil
 		}
 		// 发给 header 节点
@@ -58,6 +70,15 @@ func (this *server) ClientYieldMsgDataRequest(in pd.DMQFollowerService_ClientYie
 
 // 客户端消费数据
 func (this *server) ClientConsumeData(request *pd.ClientRegistToFollower, in pd.DMQFollowerService_ClientConsumeDataServer) error {
+
+	key := request.Key // 客户端密钥
+	_res, rerr := headerService.ProofClientRequest(context.Background(), &headerpd.ProofClient{
+		Key: key,
+	})
+	if rerr != nil || _res.Errno == 1 {
+		in.Send(&pd.Response{Errno: 1, Errmsg: "密钥错误"})
+		return nil
+	}
 	/*
 			    string groupname = 1;       // 消费者组名
 		    string topic     = 2;       // 话题名称

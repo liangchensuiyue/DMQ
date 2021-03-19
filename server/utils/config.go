@@ -14,6 +14,7 @@ type MyConfig struct {
 	G_Current_Platform                string // 当前 os
 	G_Header_Port                     int
 	G_Data_Dir                        string // 数据存储目录(header节点为必填)
+	G_Crypto_Dir                      string // auth路径
 	G_Heartbeat                       int    // 心跳检测间隔 header -> follower
 	G_Bind_Address                    string
 	G_Bind_Port                       int
@@ -55,6 +56,15 @@ func InitConfig(configpath string) *MyConfig {
 			mylog.Error("config: " + myconfig.G_Data_Dir + " not found!")
 			os.Exit(0)
 		}
+
+		myconfig.G_Crypto_Dir = appconf.String("crypto_dir")
+
+		_, err = os.Open(myconfig.G_Crypto_Dir)
+		if os.IsNotExist(err) {
+			mylog.Error("config: " + myconfig.G_Crypto_Dir + " not found!")
+			os.Exit(0)
+		}
+
 	}
 	if myconfig.G_Node_Type == "follower" {
 		myconfig.G_Cache_Address = appconf.String("cache_address")

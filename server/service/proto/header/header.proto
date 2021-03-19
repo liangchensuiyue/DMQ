@@ -21,8 +21,13 @@ service DMQHeaderService{
     rpc FollowerCancelTopicRequest( FollowerCancelTopic)returns(Response){}
 
     rpc FollowerYieldMsgDataRequest(stream MessageData)returns (Response){}
+    rpc ProofClientRequest(ProofClient)returns(Response){}
 
 }
+message ProofClient{
+    string key      = 1;
+}
+
 // 客户端向 follower 节点注册服务
 message ClientRegistToFollower{
     string groupname = 1;       // 消费者组名

@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"server/mycrypto"
 	"server/mylog"
 	pd "server/service/proto/header"
 	"server/utils"
@@ -118,6 +119,33 @@ func (this *server) FollowerCancelTopicRequest(ctx context.Context, request *pd.
 		}
 	}
 	return &pd.Response{}, nil
+}
+func (this *server) ProofClientRequest(ctx context.Context, request *pd.ProofClient) (out *pd.Response, err error) {
+	key := request.Key
+	out = &pd.Response{}
+	str, err := mycrypto.Decrypt(filepath.Join(headerconfig.G_Crypto_Dir, "ppfile", "pri.pem"), key)
+	if str != "gds" || err != nil {
+		out.Errno = 1
+		out.Errmsg = "密钥错误"
+		return out, nil
+	}
+	file, ferr := os.Open(filepath.Join(headerconfig.G_Crypto_Dir, "keys"))
+	if ferr != nil {
+		out.Errno = 1
+		out.Errmsg = "密钥错误"
+		return out, nil
+	}
+	fileinfo, _ := file.Readdir(0)
+	for _, v := range fileinfo {
+		if v.Name() == key {
+			out.Errno = 0
+			out.Errmsg = "success"
+			return out, nil
+		}
+	}
+	out.Errno = 1
+	out.Errmsg = "密钥错误"
+	return out, nil
 }
 
 // follower 节点注册

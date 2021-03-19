@@ -38,13 +38,19 @@ func main() {
 		mylog.Error("没有指定消费者群组!")
 		os.Exit(0)
 	}
+
+	key, kerr := cmd.Get("key")
+	if kerr != nil {
+		mylog.Error("未指定密钥")
+		os.Exit(0)
+	}
 	if ttype == "consumer" {
-		startConsume()
+		startConsume(key)
 	} else {
-		startProduce()
+		startProduce(key)
 	}
 }
-func startProduce() {
+func startProduce(key string) {
 	mylog.Info(address)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -64,6 +70,11 @@ func startProduce() {
 	if err != nil {
 		mylog.Error(fmt.Sprintf("Connect transport(%s) ", address) + err.Error())
 	}
+	err = res.Send(&pd.MessageData{Key: key})
+	if err != nil {
+		os.Exit(1)
+	}
+
 	for {
 		var message string
 		fmt.Scanln(&message)
@@ -75,13 +86,14 @@ func startProduce() {
 		if len(str) == 0 {
 			continue
 		}
+
 		err = res.Send(&pd.MessageData{Topic: topic, Message: str})
 		if err != nil {
 			os.Exit(1)
 		}
 	}
 }
-func startConsume() {
+func startConsume(key string) {
 	var nodeid string
 	u1 := uuid.NewV4()
 	str, _ := u1.MarshalText()
@@ -102,7 +114,7 @@ func startConsume() {
 	c := pd.NewDMQFollowerServiceClient(conn)
 
 	//通过句柄调用函数
-	res, err := c.ClientConsumeData(context.Background(), &pd.ClientRegistToFollower{Nodeid: nodeid, Groupname: group, Topic: topic})
+	res, err := c.ClientConsumeData(context.Background(), &pd.ClientRegistToFollower{Key: key, Nodeid: nodeid, Groupname: group, Topic: topic})
 	if err != nil {
 		mylog.Error(fmt.Sprintf("Connect transport(%s) ", address) + err.Error())
 		os.Exit(1)
@@ -110,6 +122,9 @@ func startConsume() {
 	for info, _ := res.Recv(); info != nil; info, _ = res.Recv() {
 		if info.Errno == 0 {
 			fmt.Printf("(%s) %s\n", nodeid, info.Data.Message)
+		} else {
+			fmt.Println(info.Errmsg)
+			break
 		}
 	}
 }

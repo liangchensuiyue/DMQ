@@ -30,12 +30,14 @@ message ClientRegistToFollower{
     string nodeid    = 1;       // 节点id
     string groupname = 2;       // 消费者组名
     string topic     = 3;       // 话题名称
+    string key       = 4;       // 密钥
 }
 message MessageData {
     string topic = 1;       // 数据对应的topic
     string message = 2;     // 真正的数据
     int64  length  = 3;
     string des     = 4;     // 附加信息
+    string key     = 5; //密钥
 }
 // 响应信息
 message Response{
