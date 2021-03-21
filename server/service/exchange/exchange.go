@@ -10,6 +10,7 @@ import (
 	"server/utils"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -27,7 +28,7 @@ type HeaderNodeInfo struct {
 
 // 集群中的header节点
 var headers []*HeaderNodeInfo = make([]*HeaderNodeInfo, 0, 0)
-
+var FailNum map[string]int8 = make(map[string]int8, 0)
 var selfHeaderInfo *HeaderNodeInfo = &HeaderNodeInfo{}
 
 /*
@@ -37,7 +38,8 @@ cluster_status
 */
 var cluster_status string
 var current_master *HeaderNodeInfo
-
+var SelfIsMaster bool = false
+var lock *sync.Mutex = &sync.Mutex{}
 var config *utils.MyConfig
 
 func GetCurrentMaster() *HeaderNodeInfo {
@@ -50,7 +52,10 @@ func GetHeaders() []*HeaderNodeInfo {
 	return headers
 }
 func AddHeader(newheader *HeaderNodeInfo) {
+	lock.Lock()
+	defer lock.Unlock()
 	headers = append(headers, newheader)
+	FailNum[fmt.Sprintf("%s:%d", newheader.Address, newheader.Port)] = 0
 }
 
 // 开始选举
@@ -62,6 +67,8 @@ func GetSelfHeaderInfo() *HeaderNodeInfo {
 	return selfHeaderInfo
 }
 func GetQuorumInfo() []*HeaderNodeInfo {
+	lock.Lock()
+	defer lock.Unlock()
 	headers = make([]*HeaderNodeInfo, 0)
 	_headers := make([]*HeaderNodeInfo, 0)
 	for _, v := range config.G_Quorum {
@@ -87,6 +94,7 @@ func GetQuorumInfo() []*HeaderNodeInfo {
 			Weight:      int32(selfHeaderInfo.Weight),
 			CurrentTxId: selfHeaderInfo.CurrentTxId,
 		})
+
 		if err1 != nil {
 			mylog.Error(fmt.Sprintf("%s:%d  %s", _headers[i].Address, _headers[i].Port, "link error"))
 			continue
@@ -105,6 +113,7 @@ func GetQuorumInfo() []*HeaderNodeInfo {
 	return headers
 }
 func GetMaster() {
+	fmt.Println("getmaster")
 	if selfHeaderInfo.MasterAddress != "" {
 		// 集群中已存在master
 		for i := 0; i < len(headers); i++ {
@@ -178,15 +187,23 @@ func GetMaster() {
 	}
 }
 func broadcastHeaderEnter() {
+
 	GetQuorumInfo()
+	lock.Lock()
+	defer lock.Unlock()
+
 	for i := 0; i < len(headers); i++ {
-		headers[i].Service.EnterCluster(context.Background(), &headerpd.HeaderInfo{
+		_, err := headers[i].Service.EnterCluster(context.Background(), &headerpd.HeaderInfo{
 			Address:     selfHeaderInfo.Address,
 			Port:        int32(selfHeaderInfo.Port),
 			NodeId:      int32(selfHeaderInfo.NodeId),
 			Weight:      int32(selfHeaderInfo.Weight),
 			CurrentTxId: selfHeaderInfo.CurrentTxId,
 		})
+		if err != nil && current_master.Address == headers[i].Address && current_master.Port == headers[i].Port {
+			mylog.Error("加入集群失败 " + err.Error())
+			os.Exit(0)
+		}
 	}
 }
 func Init(conf *utils.MyConfig) {
@@ -204,17 +221,62 @@ func StartExchange() {
 	GetQuorumInfo()
 	// 获取master
 	GetMaster()
-	fmt.Println(current_master, "===================")
+	if current_master.Address == selfHeaderInfo.Address && current_master.Port == selfHeaderInfo.Port {
+		SelfIsMaster = true
+	}
 	broadcastHeaderEnter()
+
 	mylog.Info(fmt.Sprintf("当前master: %s:%d", current_master.Address, current_master.Port))
+	if SelfIsMaster {
+		go StartPingPong()
+	}
 	fmt.Println("集群成员")
 	go p()
 
+}
+func StartPingPong() {
+	time.Sleep(time.Second * time.Duration(config.G_Heartbeat))
+	// time.Sleep(time.Second * 10)
+	lock.Lock()
+	for i := 0; i < len(headers); i++ {
+		_, err := headers[i].Service.PingPong(context.Background(), &headerpd.PingPongData{AliveTime: 10})
+		if err != nil {
+			n, ok := FailNum[fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port)]
+			// fmt.Println(fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port), n)
+			if !ok {
+				FailNum[fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port)] = 1
+				continue
+			} else {
+				FailNum[fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port)] = n + 1
+				if n+1 < 3 {
+					continue
+				}
+			}
+			if len(headers) == 0 {
+				headers = make([]*HeaderNodeInfo, 0)
+				break
+			} else if len(headers)-1 == i {
+				headers = headers[:i]
+				break
+			} else {
+				headers = append(headers[:i], headers[i+1:]...)
+				i--
+			}
+
+		} else {
+			FailNum[fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port)] = 0
+		}
+	}
+	lock.Unlock()
+
+	StartPingPong()
 }
 func p() {
 	for _, v := range headers {
 		fmt.Println(v.Address, v.Port)
 	}
+	fmt.Println()
+
 	time.Sleep(time.Second)
 	p()
 }

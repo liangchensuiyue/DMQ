@@ -29,8 +29,30 @@ service DMQHeaderService{
     // 宣布加入集群
     rpc EnterCluster(HeaderInfo)returns(HeaderInfo){}
 
+    rpc PingPong(PingPongData)returns(PingPongData){}
+
+
+    rpc CommitTx(TxData)returns(Response){}
+    rpc Prepare(TxData)returns(Response){}
+
+    rpc GetTxDataByTx(TxData)returns(TxDatas){}
+
+    rpc Transfer2Master(MessageData)returns(Response){}
+
+}
+message TxData{
+    string  Txid    = 1;
+    string  Topic   = 2;
+    string  Msg     = 3;
+}
+message TxDatas{
+    repeated TxData Txs = 1;
 }
 
+
+message PingPongData{
+    int32  AliveTime  =1;
+}
 message HeaderInfo{
     string Address  = 1;
 	int32 Port        = 2;

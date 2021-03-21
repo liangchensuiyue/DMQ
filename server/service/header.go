@@ -12,10 +12,12 @@ import (
 	"server/mycrypto"
 	"server/mylog"
 	"server/service/exchange"
+	headerpd "server/service/proto/header"
 	pd "server/service/proto/header"
 	"server/service/tx"
 	"server/utils"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -36,9 +38,11 @@ type Topic struct {
 	lock *sync.Mutex // 锁
 }
 
+var version int = 0
 var followerList FollowerNodeList
 var topicMap map[string]*Topic
 var headerconfig *utils.MyConfig
+var PrepareQueue []*tx.Tx = make([]*tx.Tx, 0)
 
 // 记录消费者对应的话题偏移量;隔一定的周期就写入磁盘
 // var offsetCache map[string]int
@@ -124,6 +128,63 @@ func (this *server) FollowerCancelTopicRequest(ctx context.Context, request *pd.
 	return &pd.Response{}, nil
 }
 
+func (this *server) PingPong(ctx context.Context, request *pd.PingPongData) (out *pd.PingPongData, err error) {
+	out = &pd.PingPongData{AliveTime: 10}
+	return out, nil
+}
+
+func (this *server) CommitTx(ctx context.Context, request *pd.TxData) (out *pd.Response, err error) {
+	tx.CommitTx(request.Txid)
+	out = &pd.Response{Errno: 0}
+	return out, nil
+}
+func (this *server) Prepare(ctx context.Context, request *pd.TxData) (out *pd.Response, err error) {
+	tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
+	out = &pd.Response{Errno: 0}
+	return out, nil
+}
+func EnterQueue(request *pd.MessageData) {
+	request.Length = int64(len([]byte(request.Message)) + 1)
+
+	// 将数据写到dish
+	// writeDataToTopic(info.Topic, info.Message)
+	currentTxid := tx.GetCurrentTxId()
+	txdata := &tx.Tx{}
+	if currentTxid == "" {
+		txdata.TxId = fmt.Sprintf("%d-%d-%d", 0, time.Now().Unix(), 1)
+	} else {
+		if len(PrepareQueue) == 0 {
+			_arr := strings.Split(currentTxid, "-")
+			code, _ := strconv.Atoi(_arr[2])
+			txdata.TxId = fmt.Sprintf("%d-%d-%d", version, time.Now().Unix(), code+1)
+		} else {
+			_arr := strings.Split(PrepareQueue[len(PrepareQueue)-1].TxId, "-")
+			code, _ := strconv.Atoi(_arr[2])
+			txdata.TxId = fmt.Sprintf("%d-%d-%d", version, time.Now().Unix(), code+1)
+		}
+
+	}
+	txdata.Topic = request.Topic
+	txdata.Msg = request.Message
+	PrepareQueue = append(PrepareQueue, txdata)
+}
+func (this *server) Transfer2Master(ctx context.Context, request *pd.MessageData) (out *pd.Response, err error) {
+	EnterQueue(request)
+	out = &pd.Response{Errno: 0}
+	return out, nil
+}
+func (this *server) GetTxDataByTx(ctx context.Context, request *pd.TxData) (out *pd.TxDatas, err error) {
+	txs, _ := tx.GetTxDatasByTxId(request.Txid)
+	out = new(pd.TxDatas)
+	for _, v := range txs {
+		out.Txs = append(out.Txs, &pd.TxData{
+			Txid:  v.TxId,
+			Topic: v.Topic,
+			Msg:   v.Msg,
+		})
+	}
+	return out, nil
+}
 func (this *server) EnterCluster(ctx context.Context, request *pd.HeaderInfo) (out *pd.HeaderInfo, err error) {
 	nodes := exchange.GetHeaders()
 	for i := 0; i < len(nodes); i++ {
@@ -131,6 +192,12 @@ func (this *server) EnterCluster(ctx context.Context, request *pd.HeaderInfo) (o
 			return &pd.HeaderInfo{}, nil
 		}
 	}
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", request.Address, request.Port), grpc.WithInsecure())
+	if err != nil {
+		mylog.Error(fmt.Sprintf("%s:%d  %s", request.Address, request.Port, "link error"))
+		return &pd.HeaderInfo{}, errors.New("fail")
+	}
+
 	exchange.AddHeader(&exchange.HeaderNodeInfo{
 		Address:       request.Address,
 		Port:          request.Port,
@@ -138,6 +205,7 @@ func (this *server) EnterCluster(ctx context.Context, request *pd.HeaderInfo) (o
 		Weight:        request.Weight,
 		CurrentTxId:   request.CurrentTxId,
 		MasterAddress: request.MasterAddress,
+		Service:       headerpd.NewDMQHeaderServiceClient(conn),
 	})
 
 	return &pd.HeaderInfo{}, nil
@@ -224,11 +292,13 @@ func (this *server) FollowerYieldMsgDataRequest(in pd.DMQHeaderService_FollowerY
 			in.SendAndClose(&pd.Response{Errno: 1, Errmsg: "不存在的topic: " + info.Topic})
 			return nil
 		}
-		// 将数据写到dish
-		writeDataToTopic(info.Topic, info.Message)
 		info.Length = int64(len([]byte(info.Message)) + 1)
-		// 将数据添加到管道
-		msgChan <- *info
+		EnterQueue(info)
+		// 将数据写到dish
+		// writeDataToTopic(info.Topic, info.Message)
+		// info.Length = int64(len([]byte(info.Message)) + 1)
+		// // 将数据添加到管道
+		// msgChan <- *info
 		// 管道
 	}
 	in.SendAndClose(&pd.Response{Errno: 2, Errmsg: "生产通道已关闭已关闭"})

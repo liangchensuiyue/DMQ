@@ -17,6 +17,8 @@ import (
 
 var lock *sync.Mutex = &sync.Mutex{}
 var lock1 *sync.Mutex = &sync.Mutex{}
+
+// var lock2 *sync.Mutex = &sync.Mutex{}
 var config *utils.MyConfig
 
 type Tx struct {
@@ -80,9 +82,22 @@ func GetTxDatasByTxId(txid string) ([]*Tx, error) {
 
 var unfinishTxs []*Tx = make([]*Tx, 0, 0)
 
+func PrepareTx(data *Tx) {
+	lock1.Lock()
+	defer lock1.Unlock()
+	for _, v := range unfinishTxs {
+		if v.TxId == data.TxId {
+			return
+		}
+	}
+	unfinishTxs = append(unfinishTxs, data)
+}
+
 // 事务提交
 func CommitTx(txid string) {
 	lock1.Lock()
+	defer lock1.Unlock()
+
 	for i := 0; i < len(unfinishTxs); i++ {
 		if CompareTxId(unfinishTxs[i].TxId, txid) == 0 {
 			SaveTx(unfinishTxs[i])
@@ -97,7 +112,6 @@ func CommitTx(txid string) {
 			}
 		}
 	}
-	defer lock1.Unlock()
 }
 func GetTxDataByTxId(txid string) (*Tx, error) {
 	lock.Lock()
@@ -129,7 +143,7 @@ func GetCurrentTxId() string {
 	}
 	reader := bufio.NewReader(file)
 	line, _, _ := reader.ReadLine()
-	return string(line)
+	return strings.TrimSpace(string(line))
 }
 func CompareTxId(id1, id2 string) int8 {
 	id1s := strings.Split(id1, "-")
