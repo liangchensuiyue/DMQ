@@ -20,7 +20,7 @@ import (
 type server struct{}
 
 var lock *sync.Mutex = &sync.Mutex{}
-var datadir = "./data.txt"
+var datadir = "./data"
 
 var cache map[string]string
 
@@ -57,6 +57,8 @@ func (this *server) Get(ctx context.Context, in *pd.Request) (out *pd.Response, 
 func loadFile() {
 	_, err := os.Stat(datadir)
 	if os.IsNotExist(err) {
+		file, _ := os.Create("./data")
+		file.Close()
 		cache = make(map[string]string, 0)
 		return
 	}

@@ -23,7 +23,23 @@ service DMQHeaderService{
     rpc FollowerYieldMsgDataRequest(stream MessageData)returns (Response){}
     rpc ProofClientRequest(ProofClient)returns(Response){}
 
+    // 获取header节点的信息,并表明是谁要获取
+    rpc GetHeaderInfoRequest(HeaderInfo) returns(HeaderInfo){}
+
+    // 宣布加入集群
+    rpc EnterCluster(HeaderInfo)returns(HeaderInfo){}
+
 }
+
+message HeaderInfo{
+    string Address  = 1;
+	int32 Port        = 2;
+	int32 NodeId      = 3;
+	int32 Weight      = 4;
+	string CurrentTxId =5; 
+    string MasterAddress     =6;
+}
+
 message ProofClient{
     string key      = 1;
 }

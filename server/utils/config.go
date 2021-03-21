@@ -2,7 +2,9 @@ package utils
 
 import (
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 
 	"server/mylog"
 	"server/utils/config"
@@ -22,6 +24,10 @@ type MyConfig struct {
 	G_Cache_Port                      int
 	G_Max_Register                    int // follower 最大注册消费者数
 	G_Ws_Address                      string
+	G_Node_Id                         int
+	G_Weight                          int
+	G_Quorum                          []string
+	G_Tx_Dir                          string
 	G_Offset_Cache_Write_To_Dish_Time int
 }
 
@@ -49,7 +55,9 @@ func InitConfig(configpath string) *MyConfig {
 	myconfig.G_Header_Port, err = appconf.Int("header_port")
 	if err != nil {
 		mylog.Error("config: " + err.Error())
+		os.Exit(0)
 	}
+
 	if myconfig.G_Node_Type == "header" {
 		myconfig.G_Data_Dir = appconf.String("data_dir")
 
@@ -66,6 +74,35 @@ func InitConfig(configpath string) *MyConfig {
 			mylog.Error("config: " + myconfig.G_Crypto_Dir + " not found!")
 			os.Exit(0)
 		}
+
+		myconfig.G_Tx_Dir = appconf.String("tx_dir")
+
+		_, err = os.Open(myconfig.G_Tx_Dir)
+		if os.IsNotExist(err) {
+			os.Mkdir(myconfig.G_Tx_Dir, 0755)
+			file, _ := os.Create(filepath.Join(myconfig.G_Tx_Dir, "finish"))
+			file.Close()
+			file, _ = os.Create(filepath.Join(myconfig.G_Tx_Dir, "unfinish"))
+			file.Close()
+		}
+
+		myconfig.G_Node_Id, err = appconf.Int("node_id")
+		if err != nil {
+			mylog.Error("config: " + err.Error())
+			os.Exit(0)
+		}
+		myconfig.G_Weight, err = appconf.Int("weight")
+		if err != nil {
+			mylog.Error("config: " + err.Error())
+			os.Exit(0)
+		}
+
+		str := appconf.String("quorum")
+		if strings.TrimSpace(str) == "" {
+			mylog.Error("config: " + "quorum is empty!")
+			os.Exit(0)
+		}
+		myconfig.G_Quorum = strings.Split(str, ",")
 
 	}
 	if myconfig.G_Node_Type == "follower" {

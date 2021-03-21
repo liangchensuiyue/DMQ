@@ -11,10 +11,13 @@ import (
 	"path/filepath"
 	"server/mycrypto"
 	"server/mylog"
+	"server/service/exchange"
 	pd "server/service/proto/header"
+	"server/service/tx"
 	"server/utils"
 	"strconv"
 	"sync"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -119,6 +122,37 @@ func (this *server) FollowerCancelTopicRequest(ctx context.Context, request *pd.
 		}
 	}
 	return &pd.Response{}, nil
+}
+
+func (this *server) EnterCluster(ctx context.Context, request *pd.HeaderInfo) (out *pd.HeaderInfo, err error) {
+	nodes := exchange.GetHeaders()
+	for i := 0; i < len(nodes); i++ {
+		if nodes[i].Address == request.Address && nodes[i].Port == request.Port {
+			return &pd.HeaderInfo{}, nil
+		}
+	}
+	exchange.AddHeader(&exchange.HeaderNodeInfo{
+		Address:       request.Address,
+		Port:          request.Port,
+		NodeId:        request.NodeId,
+		Weight:        request.Weight,
+		CurrentTxId:   request.CurrentTxId,
+		MasterAddress: request.MasterAddress,
+	})
+
+	return &pd.HeaderInfo{}, nil
+}
+func (this *server) GetHeaderInfoRequest(ctx context.Context, request *pd.HeaderInfo) (out *pd.HeaderInfo, err error) {
+	info := exchange.GetSelfHeaderInfo()
+	out = &pd.HeaderInfo{}
+	out.Address = info.Address
+	out.Port = info.Port
+	out.NodeId = info.NodeId
+	out.Weight = info.Weight
+	out.CurrentTxId = info.CurrentTxId
+	out.MasterAddress = info.MasterAddress
+
+	return out, nil
 }
 func (this *server) ProofClientRequest(ctx context.Context, request *pd.ProofClient) (out *pd.Response, err error) {
 	key := request.Key
@@ -444,11 +478,13 @@ func initGlobalVar() {
 
 func StartHeader(conf *utils.MyConfig) {
 	initGlobalVar()
-	go channelAroused()
+	tx.Init(conf)
+	exchange.Init(conf)
+
 	headerconfig = conf
-	mylog.Info(fmt.Sprintln("正在启动 header 节点....", conf))
+	mylog.Info(fmt.Sprintln("正在启动 header 节点...."))
 	//创建网络
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", conf.G_Header_Address, conf.G_Header_Port))
+	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", conf.G_Bind_Address, conf.G_Bind_Port))
 	if err != nil {
 		fmt.Println("网络错误", err)
 	}
@@ -458,12 +494,18 @@ func StartHeader(conf *utils.MyConfig) {
 
 	//注册服务
 	pd.RegisterDMQHeaderServiceServer(srv, &server{})
-	mylog.Info(fmt.Sprintf("listen: %s:%d\n", conf.G_Header_Address, conf.G_Header_Port))
+	mylog.Info(fmt.Sprintf("listen: %s:%d\n", conf.G_Bind_Address, conf.G_Bind_Port))
+
+	go startWork()
 	//等待网络连接
 	err = srv.Serve(ln)
 	if err != nil {
 		mylog.Error("启动失败: " + err.Error())
 	}
-	mylog.Info("ending")
 
+}
+func startWork() {
+	time.Sleep(time.Second * 3)
+	exchange.StartExchange()
+	go channelAroused()
 }
