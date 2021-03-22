@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"server/utils"
@@ -45,7 +44,7 @@ func BytesToInt(bts []byte) int32 {
 
 func SaveTx(txdata *Tx) {
 	lock.Lock()
-	file, _ := os.OpenFile(filepath.Join(config.G_Tx_Dir, "current"), os.O_APPEND, 0755)
+	file, _ := os.OpenFile(filepath.Join(config.G_Tx_Dir, "finish_tx"), os.O_APPEND, 0755)
 	defer file.Close()
 	defer lock.Unlock()
 	data, _ := json.Marshal(txdata)
@@ -170,9 +169,17 @@ func WriteCurrentTxId(txid string) {
 	file.Close()
 }
 func CompareTxId(id1, id2 string) int8 {
+	if id1 == "" && id2 == "" {
+		return 0
+	}
+	if id1 == "" && id2 != "" {
+		return -1
+	}
+	if id1 != "" && id2 == "" {
+		return 1
+	}
 	id1s := strings.Split(id1, "-")
 	id2s := strings.Split(id2, "-")
-	fmt.Println("=======", id1, id2)
 	index1, _ := strconv.Atoi(id1s[0])
 	index2, _ := strconv.Atoi(id2s[0])
 	if index1 > index2 {
@@ -185,7 +192,7 @@ func CompareTxId(id1, id2 string) int8 {
 	code2, _ := strconv.Atoi(id2s[2])
 	if code1 > code2 {
 		return 1
-	} else {
+	} else if code1 < code2 {
 		return -1
 	}
 	return 0

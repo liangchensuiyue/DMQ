@@ -12,8 +12,8 @@ import (
 	"server/mycrypto"
 	"server/mylog"
 	"server/service/exchange"
+
 	headerpd "server/service/proto/header"
-	pd "server/service/proto/header"
 	"server/service/tx"
 	"server/utils"
 	"strconv"
@@ -49,9 +49,9 @@ var PrepareQueueEndTxid = ""
 // var offsetCache map[string]int
 var topicLock map[string]*sync.Mutex
 
-var followerOutputPipe map[string]*pd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer
+var followerOutputPipe map[string]*headerpd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer
 
-var msgChan chan pd.MessageData
+var msgChan chan headerpd.MessageData
 
 // 给 follower 节点新增topic
 func (fnode *FollowerNode) AddTopic(topic string) {
@@ -119,61 +119,59 @@ func (flist *FollowerNodeList) Remove(n *FollowerNode) error {
 
 //grpc
 //函数关键字 （对象）函数名 （cotext，客户端发过来的参数 ）（发送给客户端的参数，错误）
-func (this *server) FollowerCancelTopicRequest(ctx context.Context, request *pd.FollowerCancelTopic) (out *pd.Response, err error) {
+func (this *server) FollowerCancelTopicRequest(ctx context.Context, request *headerpd.FollowerCancelTopic) (out *headerpd.Response, err error) {
 	for i := 0; i < len(followerList); i++ {
 		if followerList[i].address == request.Address && followerList[i].port == int(request.Port) {
 			mylog.Info(fmt.Sprintf("follower(%s:%d) topic:%s 已被注销 ", request.Address, request.Port, request.Topic))
 			followerList[i].RemoveTopic(request.Topic)
 		}
 	}
-	return &pd.Response{}, nil
+	return &headerpd.Response{}, nil
 }
 
-func (this *server) PingPong(ctx context.Context, request *pd.PingPongData) (out *pd.PingPongData, err error) {
-	out = &pd.PingPongData{AliveTime: 10}
+func (this *server) PingPong(ctx context.Context, request *headerpd.PingPongData) (out *headerpd.PingPongData, err error) {
+	out = &headerpd.PingPongData{AliveTime: 10}
 	return out, nil
 }
 
-func (this *server) CommitTx(ctx context.Context, request *pd.TxData) (out *pd.Response, err error) {
+func (this *server) CommitTx(ctx context.Context, request *headerpd.TxData) (out *headerpd.Response, err error) {
 	err = tx.CommitTx(request.Txid)
-	out = &pd.Response{Errno: 0}
+	out = &headerpd.Response{Errno: 0}
 	if err == nil {
+		writeDataToTopic(request.Topic, request.Msg)
 		tx.WriteCurrentTxId(request.Txid)
+		tx.SaveTx(&tx.Tx{
+			TxId:  request.Txid,
+			Topic: request.Topic,
+			Msg:   request.Msg,
+		})
 	} else {
 		out.Errno = 1
 		out.Errmsg = "没有对应的事务"
+		return out, err
 	}
 	return out, nil
 }
-func (this *server) Prepare(ctx context.Context, request *pd.PreTxData) (out *pd.Response, err error) {
-	out = &pd.Response{Errno: 0}
-	if tx.GetCurrentTxId() == "" {
-		tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
 
-	} else if tx.GetCurrentTxId() != request.CurrentTxId {
+// 事务proposal
+func (this *server) Prepare(ctx context.Context, request *headerpd.PreTxData) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	fmt.Println(tx.GetCurrentTxId, request.CurrentTxId, "Prepare")
+	if tx.GetCurrentTxId() != request.CurrentTxId {
 		out.Errno = 1
 		// 该节点不是最新数据
 
-		txs, err := exchange.GetCurrentMaster().Service.GetTxDataByTx(context.Background(), &pd.TxData{
-			Txid: tx.GetCurrentTxId(),
-		})
-		var newtxid string = ""
-		if err == nil {
-			for _, v := range txs.Txs {
-				newtxid = v.Txid
-				writeDataToTopic(v.Topic, v.Msg)
-				tx.WriteCurrentTxId(newtxid)
-			}
-		}
+		SyncTxData()
 
 		return out, errors.New("fail")
 	} else {
+		fmt.Println("prepare----", request.Txid)
 		tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
 	}
 
 	return out, nil
 }
-func EnterQueue(request *pd.MessageData) {
+func EnterQueue(request *headerpd.MessageData) {
 	request.Length = int64(len([]byte(request.Message)) + 1)
 
 	// 将数据写到dish
@@ -182,6 +180,7 @@ func EnterQueue(request *pd.MessageData) {
 	txdata := &tx.Tx{}
 	if currentTxid == "" {
 		txdata.TxId = fmt.Sprintf("%d-%d-%d", 0, time.Now().Unix(), 1)
+		PrepareQueueEndTxid = ""
 	} else {
 		if len(PrepareQueue) == 0 {
 			_arr := strings.Split(currentTxid, "-")
@@ -199,16 +198,17 @@ func EnterQueue(request *pd.MessageData) {
 	PrepareQueue <- txdata
 	PrepareQueueEndTxid = txdata.TxId
 }
-func (this *server) Transfer2Master(ctx context.Context, request *pd.MessageData) (out *pd.Response, err error) {
+func (this *server) Transfer2Master(ctx context.Context, request *headerpd.MessageData) (out *headerpd.Response, err error) {
+	fmt.Println("收到 ", request)
 	EnterQueue(request)
-	out = &pd.Response{Errno: 0}
+	out = &headerpd.Response{Errno: 0}
 	return out, nil
 }
-func (this *server) GetTxDataByTx(ctx context.Context, request *pd.TxData) (out *pd.TxDatas, err error) {
+func (this *server) GetTxDataByTx(ctx context.Context, request *headerpd.TxData) (out *headerpd.TxDatas, err error) {
 	txs, _ := tx.GetTxDatasByTxId(request.Txid)
-	out = new(pd.TxDatas)
+	out = new(headerpd.TxDatas)
 	for _, v := range txs {
-		out.Txs = append(out.Txs, &pd.TxData{
+		out.Txs = append(out.Txs, &headerpd.TxData{
 			Txid:  v.TxId,
 			Topic: v.Topic,
 			Msg:   v.Msg,
@@ -216,17 +216,17 @@ func (this *server) GetTxDataByTx(ctx context.Context, request *pd.TxData) (out 
 	}
 	return out, nil
 }
-func (this *server) EnterCluster(ctx context.Context, request *pd.HeaderInfo) (out *pd.HeaderInfo, err error) {
+func (this *server) EnterCluster(ctx context.Context, request *headerpd.HeaderInfo) (out *headerpd.HeaderInfo, err error) {
 	nodes := exchange.GetHeaders()
 	for i := 0; i < len(nodes); i++ {
 		if nodes[i].Address == request.Address && nodes[i].Port == request.Port {
-			return &pd.HeaderInfo{}, nil
+			return &headerpd.HeaderInfo{}, nil
 		}
 	}
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", request.Address, request.Port), grpc.WithInsecure())
 	if err != nil {
 		mylog.Error(fmt.Sprintf("%s:%d  %s", request.Address, request.Port, "link error"))
-		return &pd.HeaderInfo{}, errors.New("fail")
+		return &headerpd.HeaderInfo{}, errors.New("fail")
 	}
 
 	exchange.AddHeader(&exchange.HeaderNodeInfo{
@@ -239,11 +239,11 @@ func (this *server) EnterCluster(ctx context.Context, request *pd.HeaderInfo) (o
 		Service:       headerpd.NewDMQHeaderServiceClient(conn),
 	})
 
-	return &pd.HeaderInfo{}, nil
+	return &headerpd.HeaderInfo{}, nil
 }
-func (this *server) GetHeaderInfoRequest(ctx context.Context, request *pd.HeaderInfo) (out *pd.HeaderInfo, err error) {
+func (this *server) GetHeaderInfoRequest(ctx context.Context, request *headerpd.HeaderInfo) (out *headerpd.HeaderInfo, err error) {
 	info := exchange.GetSelfHeaderInfo()
-	out = &pd.HeaderInfo{}
+	out = &headerpd.HeaderInfo{}
 	out.Address = info.Address
 	out.Port = info.Port
 	out.NodeId = info.NodeId
@@ -253,9 +253,9 @@ func (this *server) GetHeaderInfoRequest(ctx context.Context, request *pd.Header
 
 	return out, nil
 }
-func (this *server) ProofClientRequest(ctx context.Context, request *pd.ProofClient) (out *pd.Response, err error) {
+func (this *server) ProofClientRequest(ctx context.Context, request *headerpd.ProofClient) (out *headerpd.Response, err error) {
 	key := request.Key
-	out = &pd.Response{}
+	out = &headerpd.Response{}
 	str, err := mycrypto.Decrypt(filepath.Join(headerconfig.G_Crypto_Dir, "ppfile", "pri.pem"), key)
 	if str != "gds" || err != nil {
 		out.Errno = 1
@@ -282,10 +282,10 @@ func (this *server) ProofClientRequest(ctx context.Context, request *pd.ProofCli
 }
 
 // follower 节点注册
-func (this *server) FollowerRegistToHeaderRequest(ctx context.Context, request *pd.FollowerRegistToHeader) (out *pd.Response, err error) {
+func (this *server) FollowerRegistToHeaderRequest(ctx context.Context, request *headerpd.FollowerRegistToHeader) (out *headerpd.Response, err error) {
 	fmt.Println(request, "返回流式数据")
 	err1 := followerList.Add(request.GetAddress(), int(request.GetPort()))
-	out = &pd.Response{}
+	out = &headerpd.Response{}
 	if err1 != nil {
 		out.Errno = 1
 		out.Errmsg = err1.Error()
@@ -296,6 +296,25 @@ func (this *server) FollowerRegistToHeaderRequest(ctx context.Context, request *
 	}
 
 	return
+}
+func SyncTxData() {
+	txs, err := exchange.GetCurrentMaster().Service.GetTxDataByTx(context.Background(), &headerpd.TxData{
+		Txid: tx.GetCurrentTxId(),
+	})
+	var newtxid string = ""
+	if err == nil {
+		for _, v := range txs.Txs {
+			newtxid = v.Txid
+			writeDataToTopic(v.Topic, v.Msg)
+			tx.SaveTx(&tx.Tx{
+				TxId:  v.Txid,
+				Topic: v.Topic,
+				Msg:   v.Msg,
+			})
+		}
+		tx.WriteCurrentTxId(newtxid)
+	}
+
 }
 
 func writeDataToTopic(topic, message string) {
@@ -316,20 +335,25 @@ func writeDataToTopic(topic, message string) {
 	t.file.Write(append([]byte(message), byte(0)))
 	defer t.lock.Unlock()
 }
-func (this *server) FollowerYieldMsgDataRequest(in pd.DMQHeaderService_FollowerYieldMsgDataRequestServer) error {
+func (this *server) FollowerYieldMsgDataRequest(in headerpd.DMQHeaderService_FollowerYieldMsgDataRequestServer) error {
 	for info, _ := in.Recv(); info != nil; info, _ = in.Recv() {
 
 		if !topicIsExist(info.Topic) {
-			in.SendAndClose(&pd.Response{Errno: 1, Errmsg: "不存在的topic: " + info.Topic})
+			in.SendAndClose(&headerpd.Response{Errno: 1, Errmsg: "不存在的topic: " + info.Topic})
+			return nil
+		}
+		if exchange.GetCluterStatus() == "vote" {
+			in.SendAndClose(&headerpd.Response{Errno: 1, Errmsg: "集群暂时处于 vote 状态"})
 			return nil
 		}
 		info.Length = int64(len([]byte(info.Message)) + 1)
 		if exchange.SelfIsMaster {
 			EnterQueue(info)
 		} else {
+			fmt.Println("Transfer2Master", info)
 			_, err := exchange.GetCurrentMaster().Service.Transfer2Master(context.Background(), info)
 			if err != nil {
-				in.SendAndClose(&pd.Response{Errno: 1, Errmsg: "Transfer2Master: " + err.Error()})
+				in.SendAndClose(&headerpd.Response{Errno: 1, Errmsg: "Transfer2Master: " + err.Error()})
 				return nil
 			}
 		}
@@ -341,14 +365,14 @@ func (this *server) FollowerYieldMsgDataRequest(in pd.DMQHeaderService_FollowerY
 		// msgChan <- *info
 		// 管道
 	}
-	in.SendAndClose(&pd.Response{Errno: 2, Errmsg: "生产通道已关闭已关闭"})
-	// in.Send(&pd.StudentResponseList{StudentResponse: []*pd.StudentResponse{&pd.StudentResponse{}}})
-	// in.Send(&pd.StudentResponseList{StudentResponse: []*pd.StudentResponse{&pd.StudentResponse{}}})
-	// in.Send(&pd.StudentResponseList{StudentResponse: []*pd.StudentResponse{&pd.StudentResponse{}}})
+	in.SendAndClose(&headerpd.Response{Errno: 2, Errmsg: "生产通道已关闭已关闭"})
+	// in.Send(&headerpd.StudentResponseList{StudentResponse: []*headerpd.StudentResponse{&headerpd.StudentResponse{}}})
+	// in.Send(&headerpd.StudentResponseList{StudentResponse: []*headerpd.StudentResponse{&headerpd.StudentResponse{}}})
+	// in.Send(&headerpd.StudentResponseList{StudentResponse: []*headerpd.StudentResponse{&headerpd.StudentResponse{}}})
 	// time.Sleep(time.Second * 4)
 	return nil
 }
-func (this *server) FollowerToHeaderRequestDataRequest(in pd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer) error {
+func (this *server) FollowerToHeaderRequestDataRequest(in headerpd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer) error {
 	var address string
 	var port int32
 	flag := false
@@ -360,18 +384,18 @@ func (this *server) FollowerToHeaderRequestDataRequest(in pd.DMQHeaderService_Fo
 			port = info.Port
 			err := followerList.Add(address, int(port))
 			if err != nil {
-				in.Send(&pd.Response{Errno: 1, Errmsg: err.Error()})
+				in.Send(&headerpd.Response{Errno: 1, Errmsg: err.Error()})
 				return nil
 			}
 			followerOutputPipe[fmt.Sprintf("%s_%d", address, port)] = &in
 			flag = true
 			mylog.Info(fmt.Sprintf("%s:%d 节点注册成功", address, int(port)))
-			in.Send(&pd.Response{Errno: 0, Errmsg: "注册成功!"})
+			in.Send(&headerpd.Response{Errno: 0, Errmsg: "注册成功!"})
 			continue
 		}
 
 		if !topicIsExist(info.Topic) {
-			in.Send(&pd.Response{Errno: 1, Errmsg: "指定的topic不存在", Data: &pd.MessageData{Topic: info.Topic}})
+			in.Send(&headerpd.Response{Errno: 1, Errmsg: "指定的topic不存在", Data: &headerpd.MessageData{Topic: info.Topic}})
 			return nil
 		}
 		for i, _ := range followerList {
@@ -386,11 +410,11 @@ func (this *server) FollowerToHeaderRequestDataRequest(in pd.DMQHeaderService_Fo
 		if err == nil {
 			for _, v := range data {
 				fmt.Println("send: ", v, info.Groupname)
-				in.Send(&pd.Response{Errno: 0, Errmsg: "success!", Data: &pd.MessageData{Des: info.Groupname, Topic: info.Topic, Message: v, Length: 1 + int64(len([]byte(v)))}})
+				in.Send(&headerpd.Response{Errno: 0, Errmsg: "success!", Data: &headerpd.MessageData{Des: info.Groupname, Topic: info.Topic, Message: v, Length: 1 + int64(len([]byte(v)))}})
 			}
 
 		} else {
-			in.Send(&pd.Response{Errno: 1, Errmsg: err.Error(), Data: &pd.MessageData{Topic: info.Topic}})
+			in.Send(&headerpd.Response{Errno: 1, Errmsg: err.Error(), Data: &headerpd.MessageData{Topic: info.Topic}})
 		}
 	}
 
@@ -398,7 +422,7 @@ func (this *server) FollowerToHeaderRequestDataRequest(in pd.DMQHeaderService_Fo
 	followerList.Remove(&FollowerNode{address: address, port: int(port)})
 	delete(followerOutputPipe, fmt.Sprintf("%s_%d", address, port))
 	mylog.Warning(fmt.Sprintf("%s:%d 节点已注销", address, int(port)))
-	// in.SendAndClose(&pd.StudentResponseList{StudentResponse: []*pd.StudentResponse{&pd.StudentResponse{}}})
+	// in.SendAndClose(&headerpd.StudentResponseList{StudentResponse: []*headerpd.StudentResponse{&headerpd.StudentResponse{}}})
 	return nil
 }
 
@@ -546,18 +570,22 @@ func PrepareSend() {
 		prepareTx = <-PrepareQueue
 		if len(headers) == 0 {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
+			tx.SaveTx(prepareTx)
 			tx.WriteCurrentTxId(prepareTx.TxId)
 			continue
 		}
 		prepareSuccessNode = make([]*exchange.HeaderNodeInfo, 0)
 		for i := 0; i < len(headers); i++ {
-			res, err := headers[i].Service.Prepare(context.Background(), &pd.PreTxData{
+			res, err := headers[i].Service.Prepare(context.Background(), &headerpd.PreTxData{
 				CurrentTxId: tx.GetCurrentTxId(),
 				Txid:        prepareTx.TxId,
 				Topic:       prepareTx.Topic,
 				Msg:         prepareTx.Msg,
 			})
-			if res.Errno != 0 || err != nil {
+			if err != nil {
+				continue
+			}
+			if res.Errno == 1 {
 				continue
 			}
 			prepareSuccessNode = append(prepareSuccessNode, headers[i])
@@ -565,23 +593,25 @@ func PrepareSend() {
 		// 除master之外集群中只有一个header
 		if len(headers) == 1 && len(prepareSuccessNode) == 0 {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
+			tx.SaveTx(prepareTx)
 			tx.WriteCurrentTxId(prepareTx.TxId)
 			continue
 		} else if len(headers)-len(prepareSuccessNode) <= len(prepareSuccessNode) {
 			for i := 0; i < len(prepareSuccessNode); i++ {
-				headers[i].Service.CommitTx(context.Background(), &pd.TxData{
+				prepareSuccessNode[i].Service.CommitTx(context.Background(), &headerpd.TxData{
 					Txid:  prepareTx.TxId,
 					Topic: prepareTx.Topic,
 					Msg:   prepareTx.Msg,
 				})
 			}
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
+			tx.SaveTx(prepareTx)
 			tx.WriteCurrentTxId(prepareTx.TxId)
 		}
 	}
 }
 func channelAroused() {
-	var msgdata pd.MessageData
+	var msgdata headerpd.MessageData
 	for {
 		msgdata = <-msgChan
 		for {
@@ -601,7 +631,7 @@ func channelAroused() {
 					if !ok {
 						continue
 					}
-					(*in).Send(&pd.Response{Errno: 0, Errmsg: "success!", Data: &msgdata})
+					(*in).Send(&headerpd.Response{Errno: 0, Errmsg: "success!", Data: &msgdata})
 					break
 				}
 				index++
@@ -624,8 +654,8 @@ func initGlobalVar() {
 	// offsetCache = make(map[string]int, 0)
 	topicLock = make(map[string]*sync.Mutex, 0)
 
-	followerOutputPipe = make(map[string]*pd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer, 0)
-	msgChan = make(chan pd.MessageData, 100)
+	followerOutputPipe = make(map[string]*headerpd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer, 0)
+	msgChan = make(chan headerpd.MessageData, 100)
 }
 
 func StartHeader(conf *utils.MyConfig) {
@@ -645,7 +675,7 @@ func StartHeader(conf *utils.MyConfig) {
 	srv := grpc.NewServer()
 
 	//注册服务
-	pd.RegisterDMQHeaderServiceServer(srv, &server{})
+	headerpd.RegisterDMQHeaderServiceServer(srv, &server{})
 	mylog.Info(fmt.Sprintf("listen: %s:%d\n", conf.G_Bind_Address, conf.G_Bind_Port))
 
 	go startWork()
@@ -659,6 +689,9 @@ func StartHeader(conf *utils.MyConfig) {
 func startWork() {
 	time.Sleep(time.Second * 3)
 	exchange.StartExchange()
+	if !exchange.SelfIsMaster {
+		SyncTxData()
+	}
 	go PrepareSend()
 	go channelAroused()
 }

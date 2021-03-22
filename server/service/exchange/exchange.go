@@ -112,8 +112,10 @@ func GetQuorumInfo() []*HeaderNodeInfo {
 	}
 	return headers
 }
+
 func GetMaster() {
 	fmt.Println("getmaster")
+	cluster_status = "vote"
 	if selfHeaderInfo.MasterAddress != "" {
 		// 集群中已存在master
 		for i := 0; i < len(headers); i++ {
@@ -125,6 +127,7 @@ func GetMaster() {
 		if selfHeaderInfo.MasterAddress == fmt.Sprintf("%s:%d", selfHeaderInfo.Address, selfHeaderInfo.Port) {
 			current_master = selfHeaderInfo
 		}
+		cluster_status = "operation"
 	} else {
 		// 选举master
 
@@ -132,7 +135,7 @@ func GetMaster() {
 		cluster_status = "vote"
 
 		// 重新获取各节点信息排除故障节点
-		GetHeaders()
+		GetQuorumInfo()
 		if len(headers) == 0 {
 			current_master = selfHeaderInfo
 			selfHeaderInfo.MasterAddress = fmt.Sprintf("%s:%d", current_master.Address, current_master.Port)
@@ -229,10 +232,34 @@ func StartExchange() {
 	mylog.Info(fmt.Sprintf("当前master: %s:%d", current_master.Address, current_master.Port))
 	if SelfIsMaster {
 		go StartPingPong()
+	} else {
+		go PingPongMaster()
 	}
 	fmt.Println("集群成员")
-	go p()
+	// go p()
 
+}
+
+var MasterFailNum int = 0
+
+func PingPongMaster() {
+	time.Sleep(time.Second * time.Duration(config.G_Heartbeat))
+	_, err := current_master.Service.PingPong(context.Background(), &headerpd.PingPongData{AliveTime: 10})
+	if err != nil {
+		MasterFailNum++
+		if MasterFailNum >= 3 {
+			selfHeaderInfo.MasterAddress = ""
+			GetMaster()
+			MasterFailNum = 0
+			if SelfIsMaster {
+				go StartPingPong()
+				return
+			}
+		}
+	} else {
+		MasterFailNum = 0
+	}
+	PingPongMaster()
 }
 func StartPingPong() {
 	time.Sleep(time.Second * time.Duration(config.G_Heartbeat))
@@ -271,12 +298,13 @@ func StartPingPong() {
 
 	StartPingPong()
 }
-func p() {
-	for _, v := range headers {
-		fmt.Println(v.Address, v.Port)
-	}
-	fmt.Println()
 
-	time.Sleep(time.Second)
-	p()
-}
+// func p() {
+// 	for _, v := range headers {
+// 		fmt.Println(v.Address, v.Port)
+// 	}
+// 	fmt.Println()
+
+// 	time.Sleep(time.Second)
+// 	p()
+// }
