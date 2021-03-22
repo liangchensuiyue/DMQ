@@ -250,6 +250,9 @@ func PingPongMaster() {
 		if MasterFailNum >= 3 {
 			selfHeaderInfo.MasterAddress = ""
 			GetMaster()
+			if current_master.Address == selfHeaderInfo.Address && current_master.Port == selfHeaderInfo.Port {
+				SelfIsMaster = true
+			}
 			MasterFailNum = 0
 			if SelfIsMaster {
 				go StartPingPong()

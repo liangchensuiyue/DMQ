@@ -136,6 +136,7 @@ func (this *server) PingPong(ctx context.Context, request *headerpd.PingPongData
 
 func (this *server) CommitTx(ctx context.Context, request *headerpd.TxData) (out *headerpd.Response, err error) {
 	err = tx.CommitTx(request.Txid)
+	fmt.Println("Commit ", request.Txid)
 	out = &headerpd.Response{Errno: 0}
 	if err == nil {
 		writeDataToTopic(request.Topic, request.Msg)
@@ -195,8 +196,9 @@ func EnterQueue(request *headerpd.MessageData) {
 	}
 	txdata.Topic = request.Topic
 	txdata.Msg = request.Message
-	PrepareQueue <- txdata
 	PrepareQueueEndTxid = txdata.TxId
+	PrepareQueue <- txdata
+
 }
 func (this *server) Transfer2Master(ctx context.Context, request *headerpd.MessageData) (out *headerpd.Response, err error) {
 	fmt.Println("收到 ", request)
@@ -312,7 +314,10 @@ func SyncTxData() {
 				Msg:   v.Msg,
 			})
 		}
-		tx.WriteCurrentTxId(newtxid)
+		if newtxid != "" {
+			tx.WriteCurrentTxId(newtxid)
+		}
+
 	}
 
 }
@@ -351,6 +356,7 @@ func (this *server) FollowerYieldMsgDataRequest(in headerpd.DMQHeaderService_Fol
 			EnterQueue(info)
 		} else {
 			fmt.Println("Transfer2Master", info)
+
 			_, err := exchange.GetCurrentMaster().Service.Transfer2Master(context.Background(), info)
 			if err != nil {
 				in.SendAndClose(&headerpd.Response{Errno: 1, Errmsg: "Transfer2Master: " + err.Error()})
@@ -566,8 +572,9 @@ func PrepareSend() {
 	var prepareTx *tx.Tx
 	var prepareSuccessNode []*exchange.HeaderNodeInfo = make([]*exchange.HeaderNodeInfo, 0)
 	for {
-		headers := exchange.GetHeaders()
 		prepareTx = <-PrepareQueue
+		headers := exchange.GetHeaders()
+		fmt.Println(prepareTx, len(headers))
 		if len(headers) == 0 {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
 			tx.SaveTx(prepareTx)
@@ -591,6 +598,7 @@ func PrepareSend() {
 			prepareSuccessNode = append(prepareSuccessNode, headers[i])
 		}
 		// 除master之外集群中只有一个header
+		fmt.Println(len(headers), len(prepareSuccessNode))
 		if len(headers) == 1 && len(prepareSuccessNode) == 0 {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
 			tx.SaveTx(prepareTx)

@@ -53,22 +53,27 @@ func SaveTx(txdata *Tx) {
 }
 func GetTxDatasByTxId(txid string) ([]*Tx, error) {
 	lock.Lock()
-	file, _ := os.Open(filepath.Join(config.G_Tx_Dir, "finish"))
-	defer file.Close()
+	file, _ := os.Open(filepath.Join(config.G_Tx_Dir, "finish_tx"))
 	defer lock.Unlock()
 	sizebuf := make([]byte, 4, 4)
 	txs := make([]*Tx, 0, 0)
 	record := false
+	if txid == "" {
+		record = true
+	}
 	for {
 		n, err := file.Read(sizebuf)
 		if n == 0 || err != nil {
+			file.Close()
 			return txs, nil
 		}
 		// abcdef
 		if n != 4 {
+			file.Close()
 			return txs, nil
 		}
 		data := make([]byte, BytesToInt(sizebuf))
+		file.Read(data)
 		_tx := &Tx{}
 		json.Unmarshal(data, _tx)
 		if record {
@@ -101,7 +106,6 @@ func CommitTx(txid string) error {
 
 	for i := 0; i < len(unfinishTxs); i++ {
 		if CompareTxId(unfinishTxs[i].TxId, txid) == 0 {
-			SaveTx(unfinishTxs[i])
 			if len(unfinishTxs) == 1 {
 				unfinishTxs = make([]*Tx, 0, 0)
 			} else {
@@ -159,12 +163,11 @@ func GetCurrentTxIdFromDisk() {
 func WriteCurrentTxId(txid string) {
 	lock2.Lock()
 	defer lock2.Unlock()
-	file, err := os.OpenFile(filepath.Join(config.G_Tx_Dir, "current"), os.O_TRUNC|os.O_CREATE, 0755)
+	file, err := os.OpenFile(filepath.Join(config.G_Tx_Dir, "current"), os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
 		os.Exit(0)
 	}
-	writer := bufio.NewWriter(file)
-	writer.WriteString(txid)
+	file.Write([]byte(txid))
 	currentTxId = txid
 	file.Close()
 }

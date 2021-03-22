@@ -33,7 +33,7 @@ var paths []string = []string{
 
 func main() {
 	for _, v := range paths {
-		file, err := os.OpenFile(v, os.O_TRUNC, 0755)
+		file, err := os.OpenFile(v, os.O_TRUNC|os.O_RDWR, 0755)
 		if err != nil {
 			fmt.Println(err)
 		}
