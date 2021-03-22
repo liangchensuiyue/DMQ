@@ -17,13 +17,14 @@ import (
 )
 
 type HeaderNodeInfo struct {
-	Address       string
-	Port          int32
-	NodeId        int32
-	Weight        int32
-	CurrentTxId   string
-	Service       headerpd.DMQHeaderServiceClient
-	MasterAddress string
+	Address        string
+	Port           int32
+	NodeId         int32
+	Weight         int32
+	CurrentTxId    string
+	Service        headerpd.DMQHeaderServiceClient
+	MasterAddress  string
+	RegisterTopics []string
 }
 
 // 集群中的header节点
@@ -103,6 +104,7 @@ func GetQuorumInfo() []*HeaderNodeInfo {
 		_headers[i].Weight = info.Weight
 		_headers[i].CurrentTxId = info.CurrentTxId
 		_headers[i].MasterAddress = info.MasterAddress
+		_headers[i].RegisterTopics = info.RegisterTopics
 
 		if _headers[i].MasterAddress != "" {
 			selfHeaderInfo.MasterAddress = _headers[i].MasterAddress
@@ -197,11 +199,12 @@ func broadcastHeaderEnter() {
 
 	for i := 0; i < len(headers); i++ {
 		_, err := headers[i].Service.EnterCluster(context.Background(), &headerpd.HeaderInfo{
-			Address:     selfHeaderInfo.Address,
-			Port:        int32(selfHeaderInfo.Port),
-			NodeId:      int32(selfHeaderInfo.NodeId),
-			Weight:      int32(selfHeaderInfo.Weight),
-			CurrentTxId: selfHeaderInfo.CurrentTxId,
+			Address:        selfHeaderInfo.Address,
+			Port:           int32(selfHeaderInfo.Port),
+			NodeId:         int32(selfHeaderInfo.NodeId),
+			Weight:         int32(selfHeaderInfo.Weight),
+			CurrentTxId:    selfHeaderInfo.CurrentTxId,
+			RegisterTopics: selfHeaderInfo.RegisterTopics,
 		})
 		if err != nil && current_master.Address == headers[i].Address && current_master.Port == headers[i].Port {
 			mylog.Error("加入集群失败 " + err.Error())
@@ -232,6 +235,7 @@ func StartExchange() {
 	mylog.Info(fmt.Sprintf("当前master: %s:%d", current_master.Address, current_master.Port))
 	if SelfIsMaster {
 		go StartPingPong()
+		go GetHeadersInfo()
 	} else {
 		go PingPongMaster()
 	}
@@ -242,14 +246,41 @@ func StartExchange() {
 
 var MasterFailNum int = 0
 
+func GetHeadersInfo() {
+	time.Sleep(time.Second * time.Duration(config.G_Heartbeat/2))
+	for i := 0; i < len(headers); i++ {
+		info, err1 := headers[i].Service.GetHeaderInfoRequest(context.Background(), &headerpd.HeaderInfo{
+			Address:     selfHeaderInfo.Address,
+			Port:        int32(selfHeaderInfo.Port),
+			NodeId:      int32(selfHeaderInfo.NodeId),
+			Weight:      int32(selfHeaderInfo.Weight),
+			CurrentTxId: selfHeaderInfo.CurrentTxId,
+		})
+		if err1 == nil && info != nil {
+			headers[i] = &HeaderNodeInfo{
+				Address:        headers[i].Address,
+				Port:           int32(headers[i].Port),
+				NodeId:         int32(headers[i].NodeId),
+				Weight:         int32(headers[i].Weight),
+				CurrentTxId:    headers[i].CurrentTxId,
+				Service:        headers[i].Service,
+				MasterAddress:  headers[i].MasterAddress,
+				RegisterTopics: info.RegisterTopics,
+			}
+		}
+
+	}
+
+}
 func PingPongMaster() {
-	time.Sleep(time.Second * time.Duration(config.G_Heartbeat))
+	time.Sleep(time.Second * time.Duration(config.G_Heartbeat/2))
 	_, err := current_master.Service.PingPong(context.Background(), &headerpd.PingPongData{AliveTime: 10})
 	if err != nil {
 		MasterFailNum++
 		if MasterFailNum >= 3 {
 			selfHeaderInfo.MasterAddress = ""
 			GetMaster()
+			mylog.Info(fmt.Sprintf("当前master: %s:%d", current_master.Address, current_master.Port))
 			if current_master.Address == selfHeaderInfo.Address && current_master.Port == selfHeaderInfo.Port {
 				SelfIsMaster = true
 			}

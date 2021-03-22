@@ -38,6 +38,7 @@ service DMQHeaderService{
     rpc GetTxDataByTx(TxData)returns(TxDatas){}
 
     rpc Transfer2Master(MessageData)returns(Response){}
+    rpc TriggerConsumeTopic(MessageData)returns(Response){}
 
 }
 message PreTxData{
@@ -66,6 +67,7 @@ message HeaderInfo{
 	int32 Weight      = 4;
 	string CurrentTxId =5; 
     string MasterAddress     =6;
+    repeated string RegisterTopics =7;
 }
 
 message ProofClient{

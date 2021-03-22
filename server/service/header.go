@@ -45,6 +45,9 @@ var headerconfig *utils.MyConfig
 var PrepareQueue chan *tx.Tx = make(chan *tx.Tx, 1000)
 var PrepareQueueEndTxid = ""
 
+// 记录该header节点的所有follower节点住的的 topic
+var HeaderNodeTopicSet []string
+
 // 记录消费者对应的话题偏移量;隔一定的周期就写入磁盘
 // var offsetCache map[string]int
 var topicLock map[string]*sync.Mutex
@@ -124,6 +127,7 @@ func (this *server) FollowerCancelTopicRequest(ctx context.Context, request *hea
 		if followerList[i].address == request.Address && followerList[i].port == int(request.Port) {
 			mylog.Info(fmt.Sprintf("follower(%s:%d) topic:%s 已被注销 ", request.Address, request.Port, request.Topic))
 			followerList[i].RemoveTopic(request.Topic)
+			delTopic(request.Topic)
 		}
 	}
 	return &headerpd.Response{}, nil
@@ -200,6 +204,12 @@ func EnterQueue(request *headerpd.MessageData) {
 	PrepareQueue <- txdata
 
 }
+func (this *server) TriggerConsumeTopic(ctx context.Context, request *headerpd.MessageData) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	request.Length = int64(len([]byte(request.Message)) + 1)
+	msgChan <- *request
+	return out, nil
+}
 func (this *server) Transfer2Master(ctx context.Context, request *headerpd.MessageData) (out *headerpd.Response, err error) {
 	fmt.Println("收到 ", request)
 	EnterQueue(request)
@@ -252,6 +262,7 @@ func (this *server) GetHeaderInfoRequest(ctx context.Context, request *headerpd.
 	out.Weight = info.Weight
 	out.CurrentTxId = info.CurrentTxId
 	out.MasterAddress = info.MasterAddress
+	out.RegisterTopics = HeaderNodeTopicSet
 
 	return out, nil
 }
@@ -340,6 +351,7 @@ func writeDataToTopic(topic, message string) {
 	t.file.Write(append([]byte(message), byte(0)))
 	defer t.lock.Unlock()
 }
+
 func (this *server) FollowerYieldMsgDataRequest(in headerpd.DMQHeaderService_FollowerYieldMsgDataRequestServer) error {
 	for info, _ := in.Recv(); info != nil; info, _ = in.Recv() {
 
@@ -378,6 +390,28 @@ func (this *server) FollowerYieldMsgDataRequest(in headerpd.DMQHeaderService_Fol
 	// time.Sleep(time.Second * 4)
 	return nil
 }
+func delTopic(topic string) {
+	for i := 0; i < len(HeaderNodeTopicSet); i++ {
+		if topic == HeaderNodeTopicSet[i] {
+			if i == len(HeaderNodeTopicSet)-1 {
+				HeaderNodeTopicSet = HeaderNodeTopicSet[:i]
+			} else {
+				HeaderNodeTopicSet = HeaderNodeTopicSet[:i]
+				HeaderNodeTopicSet = append(HeaderNodeTopicSet, HeaderNodeTopicSet[i+1:]...)
+			}
+		}
+	}
+}
+
+func addTopic(topic string) {
+	for i := 0; i < len(HeaderNodeTopicSet); i++ {
+		if topic == HeaderNodeTopicSet[i] {
+			return
+		}
+	}
+	HeaderNodeTopicSet = append(HeaderNodeTopicSet, topic)
+
+}
 func (this *server) FollowerToHeaderRequestDataRequest(in headerpd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer) error {
 	var address string
 	var port int32
@@ -404,6 +438,7 @@ func (this *server) FollowerToHeaderRequestDataRequest(in headerpd.DMQHeaderServ
 			in.Send(&headerpd.Response{Errno: 1, Errmsg: "指定的topic不存在", Data: &headerpd.MessageData{Topic: info.Topic}})
 			return nil
 		}
+		addTopic(info.Topic)
 		for i, _ := range followerList {
 			if followerList[i].address == address && followerList[i].port == int(port) {
 				if !followerList[i].HaveTopic(info.Topic) {
@@ -612,9 +647,41 @@ func PrepareSend() {
 					Msg:   prepareTx.Msg,
 				})
 			}
+			TriggerHeaderConsume(&headerpd.MessageData{
+				Length:  int64(len([]byte(prepareTx.Topic)) + 1),
+				Topic:   prepareTx.Topic,
+				Message: prepareTx.Msg,
+				Des:     "",
+			})
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
 			tx.SaveTx(prepareTx)
 			tx.WriteCurrentTxId(prepareTx.TxId)
+		}
+	}
+}
+func TriggerHeaderConsume(data *headerpd.MessageData) {
+	var _headers []*exchange.HeaderNodeInfo = make([]*exchange.HeaderNodeInfo, 0)
+	headers := exchange.GetHeaders()
+	for i := 0; i < len(headers); i++ {
+		for j := 0; j < len(headers[i].RegisterTopics); j++ {
+			if headers[i].RegisterTopics[j] == data.Topic {
+				_headers = append(_headers, headers[i])
+			}
+		}
+	}
+	if len(_headers) == 0 {
+		return
+	}
+	if len(_headers) == 1 {
+		_, err := _headers[0].Service.TriggerConsumeTopic(context.Background(), data)
+		if err != nil {
+			return
+		}
+	} else {
+		index := rand.Intn(len(_headers))
+		_, err := _headers[index].Service.TriggerConsumeTopic(context.Background(), data)
+		if err != nil {
+			return
 		}
 	}
 }

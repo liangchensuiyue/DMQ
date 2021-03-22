@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -31,7 +32,7 @@ var paths []string = []string{
 	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
 }
 
-func main() {
+func a() {
 	for _, v := range paths {
 		file, err := os.OpenFile(v, os.O_TRUNC|os.O_RDWR, 0755)
 		if err != nil {
@@ -39,4 +40,13 @@ func main() {
 		}
 		file.Close()
 	}
+}
+func main() {
+	fmt.Println(rand.Intn(3))
+	fmt.Println(rand.Intn(3))
+	fmt.Println(rand.Intn(3))
+	fmt.Println(rand.Intn(3))
+	fmt.Println(rand.Intn(3))
+	fmt.Println(rand.Intn(3))
+	fmt.Println(rand.Intn(3))
 }
