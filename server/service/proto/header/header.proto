@@ -33,12 +33,18 @@ service DMQHeaderService{
 
 
     rpc CommitTx(TxData)returns(Response){}
-    rpc Prepare(TxData)returns(Response){}
+    rpc Prepare(PreTxData)returns(Response){}
 
     rpc GetTxDataByTx(TxData)returns(TxDatas){}
 
     rpc Transfer2Master(MessageData)returns(Response){}
 
+}
+message PreTxData{
+    string  Txid    = 1;
+    string  Topic   = 2;
+    string  Msg     = 3;
+    string CurrentTxId = 4;
 }
 message TxData{
     string  Txid    = 1;

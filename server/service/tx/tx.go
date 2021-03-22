@@ -17,9 +17,11 @@ import (
 
 var lock *sync.Mutex = &sync.Mutex{}
 var lock1 *sync.Mutex = &sync.Mutex{}
+var lock2 *sync.Mutex = &sync.Mutex{}
 
 // var lock2 *sync.Mutex = &sync.Mutex{}
 var config *utils.MyConfig
+var currentTxId string
 
 type Tx struct {
 	TxId  string
@@ -94,7 +96,7 @@ func PrepareTx(data *Tx) {
 }
 
 // 事务提交
-func CommitTx(txid string) {
+func CommitTx(txid string) error {
 	lock1.Lock()
 	defer lock1.Unlock()
 
@@ -110,8 +112,10 @@ func CommitTx(txid string) {
 					unfinishTxs = append(unfinishTxs[:i], unfinishTxs[i+1:]...)
 				}
 			}
+			return nil
 		}
 	}
+	return errors.New("not found")
 }
 func GetTxDataByTxId(txid string) (*Tx, error) {
 	lock.Lock()
@@ -137,13 +141,33 @@ func GetTxDataByTxId(txid string) (*Tx, error) {
 	}
 }
 func GetCurrentTxId() string {
+
+	return currentTxId
+}
+func GetCurrentTxIdFromDisk() {
+	lock2.Lock()
+	defer lock2.Unlock()
 	file, err := os.Open(filepath.Join(config.G_Tx_Dir, "current"))
+
 	if err != nil {
 		os.Exit(0)
 	}
 	reader := bufio.NewReader(file)
 	line, _, _ := reader.ReadLine()
-	return strings.TrimSpace(string(line))
+	currentTxId = strings.TrimSpace(string(line))
+	file.Close()
+}
+func WriteCurrentTxId(txid string) {
+	lock2.Lock()
+	defer lock2.Unlock()
+	file, err := os.OpenFile(filepath.Join(config.G_Tx_Dir, "current"), os.O_TRUNC|os.O_CREATE, 0755)
+	if err != nil {
+		os.Exit(0)
+	}
+	writer := bufio.NewWriter(file)
+	writer.WriteString(txid)
+	currentTxId = txid
+	file.Close()
 }
 func CompareTxId(id1, id2 string) int8 {
 	id1s := strings.Split(id1, "-")
@@ -168,4 +192,5 @@ func CompareTxId(id1, id2 string) int8 {
 }
 func Init(conf *utils.MyConfig) {
 	config = conf
+	GetCurrentTxIdFromDisk()
 }

@@ -42,7 +42,8 @@ var version int = 0
 var followerList FollowerNodeList
 var topicMap map[string]*Topic
 var headerconfig *utils.MyConfig
-var PrepareQueue []*tx.Tx = make([]*tx.Tx, 0)
+var PrepareQueue chan *tx.Tx = make(chan *tx.Tx, 1000)
+var PrepareQueueEndTxid = ""
 
 // 记录消费者对应的话题偏移量;隔一定的周期就写入磁盘
 // var offsetCache map[string]int
@@ -134,13 +135,42 @@ func (this *server) PingPong(ctx context.Context, request *pd.PingPongData) (out
 }
 
 func (this *server) CommitTx(ctx context.Context, request *pd.TxData) (out *pd.Response, err error) {
-	tx.CommitTx(request.Txid)
+	err = tx.CommitTx(request.Txid)
 	out = &pd.Response{Errno: 0}
+	if err == nil {
+		tx.WriteCurrentTxId(request.Txid)
+	} else {
+		out.Errno = 1
+		out.Errmsg = "没有对应的事务"
+	}
 	return out, nil
 }
-func (this *server) Prepare(ctx context.Context, request *pd.TxData) (out *pd.Response, err error) {
-	tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
+func (this *server) Prepare(ctx context.Context, request *pd.PreTxData) (out *pd.Response, err error) {
 	out = &pd.Response{Errno: 0}
+	if tx.GetCurrentTxId() == "" {
+		tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
+
+	} else if tx.GetCurrentTxId() != request.CurrentTxId {
+		out.Errno = 1
+		// 该节点不是最新数据
+
+		txs, err := exchange.GetCurrentMaster().Service.GetTxDataByTx(context.Background(), &pd.TxData{
+			Txid: tx.GetCurrentTxId(),
+		})
+		var newtxid string = ""
+		if err == nil {
+			for _, v := range txs.Txs {
+				newtxid = v.Txid
+				writeDataToTopic(v.Topic, v.Msg)
+				tx.WriteCurrentTxId(newtxid)
+			}
+		}
+
+		return out, errors.New("fail")
+	} else {
+		tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
+	}
+
 	return out, nil
 }
 func EnterQueue(request *pd.MessageData) {
@@ -158,7 +188,7 @@ func EnterQueue(request *pd.MessageData) {
 			code, _ := strconv.Atoi(_arr[2])
 			txdata.TxId = fmt.Sprintf("%d-%d-%d", version, time.Now().Unix(), code+1)
 		} else {
-			_arr := strings.Split(PrepareQueue[len(PrepareQueue)-1].TxId, "-")
+			_arr := strings.Split(PrepareQueueEndTxid, "-")
 			code, _ := strconv.Atoi(_arr[2])
 			txdata.TxId = fmt.Sprintf("%d-%d-%d", version, time.Now().Unix(), code+1)
 		}
@@ -166,7 +196,8 @@ func EnterQueue(request *pd.MessageData) {
 	}
 	txdata.Topic = request.Topic
 	txdata.Msg = request.Message
-	PrepareQueue = append(PrepareQueue, txdata)
+	PrepareQueue <- txdata
+	PrepareQueueEndTxid = txdata.TxId
 }
 func (this *server) Transfer2Master(ctx context.Context, request *pd.MessageData) (out *pd.Response, err error) {
 	EnterQueue(request)
@@ -293,7 +324,16 @@ func (this *server) FollowerYieldMsgDataRequest(in pd.DMQHeaderService_FollowerY
 			return nil
 		}
 		info.Length = int64(len([]byte(info.Message)) + 1)
-		EnterQueue(info)
+		if exchange.SelfIsMaster {
+			EnterQueue(info)
+		} else {
+			_, err := exchange.GetCurrentMaster().Service.Transfer2Master(context.Background(), info)
+			if err != nil {
+				in.SendAndClose(&pd.Response{Errno: 1, Errmsg: "Transfer2Master: " + err.Error()})
+				return nil
+			}
+		}
+
 		// 将数据写到dish
 		// writeDataToTopic(info.Topic, info.Message)
 		// info.Length = int64(len([]byte(info.Message)) + 1)
@@ -498,6 +538,48 @@ func getDataByFileAndOffset(file *os.File, offset int64) ([]string, int) {
 	return msglist, int(newoffset)
 }
 
+func PrepareSend() {
+	var prepareTx *tx.Tx
+	var prepareSuccessNode []*exchange.HeaderNodeInfo = make([]*exchange.HeaderNodeInfo, 0)
+	for {
+		headers := exchange.GetHeaders()
+		prepareTx = <-PrepareQueue
+		if len(headers) == 0 {
+			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
+			tx.WriteCurrentTxId(prepareTx.TxId)
+			continue
+		}
+		prepareSuccessNode = make([]*exchange.HeaderNodeInfo, 0)
+		for i := 0; i < len(headers); i++ {
+			res, err := headers[i].Service.Prepare(context.Background(), &pd.PreTxData{
+				CurrentTxId: tx.GetCurrentTxId(),
+				Txid:        prepareTx.TxId,
+				Topic:       prepareTx.Topic,
+				Msg:         prepareTx.Msg,
+			})
+			if res.Errno != 0 || err != nil {
+				continue
+			}
+			prepareSuccessNode = append(prepareSuccessNode, headers[i])
+		}
+		// 除master之外集群中只有一个header
+		if len(headers) == 1 && len(prepareSuccessNode) == 0 {
+			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
+			tx.WriteCurrentTxId(prepareTx.TxId)
+			continue
+		} else if len(headers)-len(prepareSuccessNode) <= len(prepareSuccessNode) {
+			for i := 0; i < len(prepareSuccessNode); i++ {
+				headers[i].Service.CommitTx(context.Background(), &pd.TxData{
+					Txid:  prepareTx.TxId,
+					Topic: prepareTx.Topic,
+					Msg:   prepareTx.Msg,
+				})
+			}
+			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
+			tx.WriteCurrentTxId(prepareTx.TxId)
+		}
+	}
+}
 func channelAroused() {
 	var msgdata pd.MessageData
 	for {
@@ -577,5 +659,6 @@ func StartHeader(conf *utils.MyConfig) {
 func startWork() {
 	time.Sleep(time.Second * 3)
 	exchange.StartExchange()
+	go PrepareSend()
 	go channelAroused()
 }
