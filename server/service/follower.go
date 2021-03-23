@@ -112,7 +112,7 @@ func (this *server) ClientConsumeData(request *pd.ClientRegistToFollower, in pd.
 	}
 	_v, _ := strconv.Atoi(res.Data)
 	offset := int64(_v)
-	fmt.Println(offset, "offset")
+	// fmt.Println(offset, "offset")
 	followerToHeaderRequestClient.Send(&headerpd.FollowerToHeaderRequestData{Groupname: group, Topic: topic, Offset: offset})
 	for {
 		time.Sleep(time.Second * 1)
@@ -196,7 +196,7 @@ func acceptData() {
 	for {
 		response = <-followerMsgChan
 		data = response.Data
-		fmt.Println("receive: ", data)
+		// fmt.Println("receive: ", data)
 		if response.Errno != 0 {
 			consumerList := topicList[data.Topic]
 			if consumerList == nil {
@@ -220,7 +220,7 @@ func acceptData() {
 				break
 			}
 			if data.Des != "" {
-				fmt.Println(data)
+				// fmt.Println(data)
 				if consumerList[data.Des] == nil || len(consumerList[data.Des]) == 0 {
 					break
 				}
@@ -306,7 +306,7 @@ func acceptData() {
 
 						break
 					} else {
-						fmt.Println("发送失败 => ", consumerList[p][i].nodeId)
+						// fmt.Println("发送失败 => ", consumerList[p][i].nodeId)
 						// 发送失败(该链接断开)
 						if len(consumerList[p]) == 1 {
 							delete(topicList[data.Topic], p)
@@ -394,7 +394,7 @@ func ws_consumer(conn *websocket.Conn) {
 		}
 		_v, _ := strconv.Atoi(res.Data)
 		offset := int64(_v)
-		fmt.Println(offset, "offset")
+		// fmt.Println(offset, "offset")
 		followerToHeaderRequestClient.Send(&headerpd.FollowerToHeaderRequestData{Groupname: group, Topic: topic, Offset: offset})
 		for {
 			time.Sleep(time.Second * 1)

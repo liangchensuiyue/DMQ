@@ -46,6 +46,9 @@ var config *utils.MyConfig
 func GetCurrentMaster() *HeaderNodeInfo {
 	return current_master
 }
+func SetCurrentMaster(master *HeaderNodeInfo) {
+	current_master = master
+}
 func GetCluterStatus() string {
 	return cluster_status
 }
@@ -115,6 +118,13 @@ func GetQuorumInfo() []*HeaderNodeInfo {
 	return headers
 }
 
+func RegisterTopics(address string, topics []string) {
+	for i := 0; i < len(headers); i++ {
+		if fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port) == address {
+			headers[i].RegisterTopics = topics
+		}
+	}
+}
 func GetMaster() {
 	fmt.Println("getmaster")
 	cluster_status = "vote"
@@ -191,6 +201,7 @@ func GetMaster() {
 
 	}
 }
+
 func broadcastHeaderEnter() {
 
 	GetQuorumInfo()
@@ -235,7 +246,7 @@ func StartExchange() {
 	mylog.Info(fmt.Sprintf("当前master: %s:%d", current_master.Address, current_master.Port))
 	if SelfIsMaster {
 		go StartPingPong()
-		go GetHeadersInfo()
+		// go GetHeadersInfo()
 	} else {
 		go PingPongMaster()
 	}
@@ -246,32 +257,32 @@ func StartExchange() {
 
 var MasterFailNum int = 0
 
-func GetHeadersInfo() {
-	time.Sleep(time.Second * time.Duration(config.G_Heartbeat/2))
-	for i := 0; i < len(headers); i++ {
-		info, err1 := headers[i].Service.GetHeaderInfoRequest(context.Background(), &headerpd.HeaderInfo{
-			Address:     selfHeaderInfo.Address,
-			Port:        int32(selfHeaderInfo.Port),
-			NodeId:      int32(selfHeaderInfo.NodeId),
-			Weight:      int32(selfHeaderInfo.Weight),
-			CurrentTxId: selfHeaderInfo.CurrentTxId,
-		})
-		if err1 == nil && info != nil {
-			headers[i] = &HeaderNodeInfo{
-				Address:        headers[i].Address,
-				Port:           int32(headers[i].Port),
-				NodeId:         int32(headers[i].NodeId),
-				Weight:         int32(headers[i].Weight),
-				CurrentTxId:    headers[i].CurrentTxId,
-				Service:        headers[i].Service,
-				MasterAddress:  headers[i].MasterAddress,
-				RegisterTopics: info.RegisterTopics,
-			}
-		}
+// func GetHeadersInfo() {
+// 	time.Sleep(time.Second * time.Duration(config.G_Heartbeat/2))
+// 	for i := 0; i < len(headers); i++ {
+// 		info, err1 := headers[i].Service.GetHeaderInfoRequest(context.Background(), &headerpd.HeaderInfo{
+// 			Address:     selfHeaderInfo.Address,
+// 			Port:        int32(selfHeaderInfo.Port),
+// 			NodeId:      int32(selfHeaderInfo.NodeId),
+// 			Weight:      int32(selfHeaderInfo.Weight),
+// 			CurrentTxId: selfHeaderInfo.CurrentTxId,
+// 		})
+// 		if err1 == nil && info != nil {
+// 			headers[i] = &HeaderNodeInfo{
+// 				Address:        headers[i].Address,
+// 				Port:           int32(headers[i].Port),
+// 				NodeId:         int32(headers[i].NodeId),
+// 				Weight:         int32(headers[i].Weight),
+// 				CurrentTxId:    headers[i].CurrentTxId,
+// 				Service:        headers[i].Service,
+// 				MasterAddress:  headers[i].MasterAddress,
+// 				RegisterTopics: info.RegisterTopics,
+// 			}
+// 		}
 
-	}
+// 	}
 
-}
+// }
 func PingPongMaster() {
 	time.Sleep(time.Second * time.Duration(config.G_Heartbeat/2))
 	_, err := current_master.Service.PingPong(context.Background(), &headerpd.PingPongData{AliveTime: 10})

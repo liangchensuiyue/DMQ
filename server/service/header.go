@@ -138,9 +138,37 @@ func (this *server) PingPong(ctx context.Context, request *headerpd.PingPongData
 	return out, nil
 }
 
+func (this *server) BroadcastMaster(ctx context.Context, request *headerpd.HeaderInfo) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", request.Address, request.Port), grpc.WithInsecure())
+	if err != nil {
+		mylog.Error(fmt.Sprintf("%s:%d  %s", request.Address, request.Port, "link error"))
+		out.Errno = 1
+		out.Errmsg = err.Error()
+		return out, err
+	}
+	master := &exchange.HeaderNodeInfo{
+		Address:       request.Address,
+		Port:          request.Port,
+		NodeId:        request.NodeId,
+		Weight:        request.Weight,
+		CurrentTxId:   request.CurrentTxId,
+		MasterAddress: fmt.Sprintf("%s:%d", request.Address, request.Port),
+	}
+	master.Service = headerpd.NewDMQHeaderServiceClient(conn)
+
+	exchange.SetCurrentMaster(master)
+	return out, nil
+}
+
+func (this *server) Register2Master(ctx context.Context, request *headerpd.RegisterTopics) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	exchange.RegisterTopics(fmt.Sprintf("%s:%d", request.Address, request.Port), request.Topics)
+	return out, nil
+}
 func (this *server) CommitTx(ctx context.Context, request *headerpd.TxData) (out *headerpd.Response, err error) {
 	err = tx.CommitTx(request.Txid)
-	fmt.Println("Commit ", request.Txid)
+	// fmt.Println("Commit ", request.Txid)
 	out = &headerpd.Response{Errno: 0}
 	if err == nil {
 		writeDataToTopic(request.Topic, request.Msg)
@@ -161,7 +189,7 @@ func (this *server) CommitTx(ctx context.Context, request *headerpd.TxData) (out
 // 事务proposal
 func (this *server) Prepare(ctx context.Context, request *headerpd.PreTxData) (out *headerpd.Response, err error) {
 	out = &headerpd.Response{Errno: 0}
-	fmt.Println(tx.GetCurrentTxId, request.CurrentTxId, "Prepare")
+	// fmt.Println(tx.GetCurrentTxId, request.CurrentTxId, "Prepare")
 	if tx.GetCurrentTxId() != request.CurrentTxId {
 		out.Errno = 1
 		// 该节点不是最新数据
@@ -170,7 +198,7 @@ func (this *server) Prepare(ctx context.Context, request *headerpd.PreTxData) (o
 
 		return out, errors.New("fail")
 	} else {
-		fmt.Println("prepare----", request.Txid)
+		// fmt.Println("prepare----", request.Txid)
 		tx.PrepareTx(&tx.Tx{TxId: request.Txid, Topic: request.Topic, Msg: request.Msg})
 	}
 
@@ -296,7 +324,7 @@ func (this *server) ProofClientRequest(ctx context.Context, request *headerpd.Pr
 
 // follower 节点注册
 func (this *server) FollowerRegistToHeaderRequest(ctx context.Context, request *headerpd.FollowerRegistToHeader) (out *headerpd.Response, err error) {
-	fmt.Println(request, "返回流式数据")
+	// fmt.Println(request, "返回流式数据")
 	err1 := followerList.Add(request.GetAddress(), int(request.GetPort()))
 	out = &headerpd.Response{}
 	if err1 != nil {
@@ -367,7 +395,7 @@ func (this *server) FollowerYieldMsgDataRequest(in headerpd.DMQHeaderService_Fol
 		if exchange.SelfIsMaster {
 			EnterQueue(info)
 		} else {
-			fmt.Println("Transfer2Master", info)
+			// fmt.Println("Transfer2Master", info)
 
 			_, err := exchange.GetCurrentMaster().Service.Transfer2Master(context.Background(), info)
 			if err != nil {
@@ -399,6 +427,12 @@ func delTopic(topic string) {
 				HeaderNodeTopicSet = HeaderNodeTopicSet[:i]
 				HeaderNodeTopicSet = append(HeaderNodeTopicSet, HeaderNodeTopicSet[i+1:]...)
 			}
+			self := exchange.GetSelfHeaderInfo()
+			exchange.GetCurrentMaster().Service.Register2Master(context.Background(), &headerpd.RegisterTopics{
+				Address: self.Address,
+				Port:    self.Port,
+				Topics:  HeaderNodeTopicSet,
+			})
 		}
 	}
 }
@@ -410,6 +444,13 @@ func addTopic(topic string) {
 		}
 	}
 	HeaderNodeTopicSet = append(HeaderNodeTopicSet, topic)
+
+	self := exchange.GetSelfHeaderInfo()
+	exchange.GetCurrentMaster().Service.Register2Master(context.Background(), &headerpd.RegisterTopics{
+		Address: self.Address,
+		Port:    self.Port,
+		Topics:  HeaderNodeTopicSet,
+	})
 
 }
 func (this *server) FollowerToHeaderRequestDataRequest(in headerpd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer) error {
@@ -447,10 +488,10 @@ func (this *server) FollowerToHeaderRequestDataRequest(in headerpd.DMQHeaderServ
 			}
 		}
 		data, err := getMessageByGroupAndTopicAndOffset(info.Groupname, info.Topic, info.Offset)
-		fmt.Println(data, err, info.Offset)
+		// fmt.Println(data, err, info.Offset)
 		if err == nil {
 			for _, v := range data {
-				fmt.Println("send: ", v, info.Groupname)
+				// fmt.Println("send: ", v, info.Groupname)
 				in.Send(&headerpd.Response{Errno: 0, Errmsg: "success!", Data: &headerpd.MessageData{Des: info.Groupname, Topic: info.Topic, Message: v, Length: 1 + int64(len([]byte(v)))}})
 			}
 
@@ -609,7 +650,7 @@ func PrepareSend() {
 	for {
 		prepareTx = <-PrepareQueue
 		headers := exchange.GetHeaders()
-		fmt.Println(prepareTx, len(headers))
+		// fmt.Println(prepareTx, len(headers))
 		if len(headers) == 0 {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
 			tx.SaveTx(prepareTx)
@@ -633,7 +674,7 @@ func PrepareSend() {
 			prepareSuccessNode = append(prepareSuccessNode, headers[i])
 		}
 		// 除master之外集群中只有一个header
-		fmt.Println(len(headers), len(prepareSuccessNode))
+		// fmt.Println(len(headers), len(prepareSuccessNode))
 		if len(headers) == 1 && len(prepareSuccessNode) == 0 {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
 			tx.SaveTx(prepareTx)
@@ -660,9 +701,13 @@ func PrepareSend() {
 	}
 }
 func TriggerHeaderConsume(data *headerpd.MessageData) {
+	self := exchange.GetSelfHeaderInfo()
+	self.RegisterTopics = HeaderNodeTopicSet
 	var _headers []*exchange.HeaderNodeInfo = make([]*exchange.HeaderNodeInfo, 0)
-	headers := exchange.GetHeaders()
+	headers := append(exchange.GetHeaders(), self)
+	// fmt.Println("---------data topic:", data.Topic)
 	for i := 0; i < len(headers); i++ {
+		// fmt.Println("---------headers topic:", headers[i].RegisterTopics)
 		for j := 0; j < len(headers[i].RegisterTopics); j++ {
 			if headers[i].RegisterTopics[j] == data.Topic {
 				_headers = append(_headers, headers[i])
@@ -679,6 +724,8 @@ func TriggerHeaderConsume(data *headerpd.MessageData) {
 		}
 	} else {
 		index := rand.Intn(len(_headers))
+		// fmt.Println("send data", data)
+
 		_, err := _headers[index].Service.TriggerConsumeTopic(context.Background(), data)
 		if err != nil {
 			return

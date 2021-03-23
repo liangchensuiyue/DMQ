@@ -40,6 +40,16 @@ service DMQHeaderService{
     rpc Transfer2Master(MessageData)returns(Response){}
     rpc TriggerConsumeTopic(MessageData)returns(Response){}
 
+    rpc BroadcastMaster(HeaderInfo) returns(Response){}
+
+
+    rpc Register2Master (RegisterTopics) returns (Response);
+
+}
+message RegisterTopics{
+    string Address  = 1;
+    int32 Port      = 2;
+    repeated string Topics = 3;
 }
 message PreTxData{
     string  Txid    = 1;
