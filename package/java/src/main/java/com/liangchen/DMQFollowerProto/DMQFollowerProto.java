@@ -3,95 +3,91 @@
 
 package com.liangchen.DMQFollowerProto;
 
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.ExtensionRegistryLite;
-import com.google.protobuf.GeneratedMessageV3;
-
 public final class DMQFollowerProto {
   private DMQFollowerProto() {}
   public static void registerAllExtensions(
-      ExtensionRegistryLite registry) {
+      com.google.protobuf.ExtensionRegistryLite registry) {
   }
 
   public static void registerAllExtensions(
-      ExtensionRegistry registry) {
+      com.google.protobuf.ExtensionRegistry registry) {
     registerAllExtensions(
-        (ExtensionRegistryLite) registry);
+        (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  static final Descriptors.Descriptor
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_DMQFollower_FollowerRegistToHeader_descriptor;
-  static final
-  GeneratedMessageV3.FieldAccessorTable
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_DMQFollower_FollowerRegistToHeader_fieldAccessorTable;
-  static final Descriptors.Descriptor
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_DMQFollower_ClientRegistToFollower_descriptor;
-  static final
-  GeneratedMessageV3.FieldAccessorTable
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable;
-  static final Descriptors.Descriptor
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_DMQFollower_MessageData_descriptor;
-  static final
-  GeneratedMessageV3.FieldAccessorTable
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_DMQFollower_MessageData_fieldAccessorTable;
-  static final Descriptors.Descriptor
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_DMQFollower_Response_descriptor;
-  static final
-  GeneratedMessageV3.FieldAccessorTable
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_DMQFollower_Response_fieldAccessorTable;
 
-  public static Descriptors.FileDescriptor
+  public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static Descriptors.FileDescriptor
+  private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
       "\n\016follower.proto\022\013DMQFollower\"7\n\026Followe" +
       "rRegistToHeader\022\017\n\007address\030\001 \001(\t\022\014\n\004port" +
-      "\030\002 \001(\005\"J\n\026ClientRegistToFollower\022\016\n\006node" +
+      "\030\002 \001(\005\"W\n\026ClientRegistToFollower\022\016\n\006node" +
       "id\030\001 \001(\t\022\021\n\tgroupname\030\002 \001(\t\022\r\n\005topic\030\003 \001" +
-      "(\t\"J\n\013MessageData\022\r\n\005topic\030\001 \001(\t\022\017\n\007mess" +
-      "age\030\002 \001(\t\022\016\n\006length\030\003 \001(\003\022\013\n\003des\030\004 \001(\t\"Q" +
-      "\n\010Response\022\r\n\005errno\030\001 \001(\005\022\016\n\006errmsg\030\002 \001(" +
-      "\t\022&\n\004data\030\003 \001(\0132\030.DMQFollower.MessageDat" +
-      "a2\217\002\n\022DMQFollowerService\022P\n\031ClientYieldM" +
-      "sgDataRequest\022\030.DMQFollower.MessageData\032" +
-      "\025.DMQFollower.Response\"\000(\001\022S\n\021ClientCons" +
-      "umeData\022#.DMQFollower.ClientRegistToFoll" +
-      "ower\032\025.DMQFollower.Response\"\0000\001\022R\n\022Clien" +
-      "tCloseChannel\022#.DMQFollower.ClientRegist" +
-      "ToFollower\032\025.DMQFollower.Response\"\000B4\n\036c" +
-      "om.liangchen.DMQFollowerProtoB\020DMQFollow" +
-      "erProtoP\001b\006proto3"
+      "(\t\022\013\n\003key\030\004 \001(\t\"W\n\013MessageData\022\r\n\005topic\030" +
+      "\001 \001(\t\022\017\n\007message\030\002 \001(\t\022\016\n\006length\030\003 \001(\003\022\013" +
+      "\n\003des\030\004 \001(\t\022\013\n\003key\030\005 \001(\t\"Q\n\010Response\022\r\n\005" +
+      "errno\030\001 \001(\005\022\016\n\006errmsg\030\002 \001(\t\022&\n\004data\030\003 \001(" +
+      "\0132\030.DMQFollower.MessageData2\217\002\n\022DMQFollo" +
+      "werService\022P\n\031ClientYieldMsgDataRequest\022" +
+      "\030.DMQFollower.MessageData\032\025.DMQFollower." +
+      "Response\"\000(\001\022S\n\021ClientConsumeData\022#.DMQF" +
+      "ollower.ClientRegistToFollower\032\025.DMQFoll" +
+      "ower.Response\"\0000\001\022R\n\022ClientCloseChannel\022" +
+      "#.DMQFollower.ClientRegistToFollower\032\025.D" +
+      "MQFollower.Response\"\000B4\n\036com.liangchen.D" +
+      "MQFollowerProtoB\020DMQFollowerProtoP\001b\006pro" +
+      "to3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new Descriptors.FileDescriptor[] {
+        new com.google.protobuf.Descriptors.FileDescriptor[] {
         });
     internal_static_DMQFollower_FollowerRegistToHeader_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_DMQFollower_FollowerRegistToHeader_fieldAccessorTable = new
-            GeneratedMessageV3.FieldAccessorTable(
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_FollowerRegistToHeader_descriptor,
         new java.lang.String[] { "Address", "Port", });
     internal_static_DMQFollower_ClientRegistToFollower_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable = new
-            GeneratedMessageV3.FieldAccessorTable(
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_ClientRegistToFollower_descriptor,
-        new java.lang.String[] { "Nodeid", "Groupname", "Topic", });
+        new java.lang.String[] { "Nodeid", "Groupname", "Topic", "Key", });
     internal_static_DMQFollower_MessageData_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_DMQFollower_MessageData_fieldAccessorTable = new
-            GeneratedMessageV3.FieldAccessorTable(
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_MessageData_descriptor,
-        new java.lang.String[] { "Topic", "Message", "Length", "Des", });
+        new java.lang.String[] { "Topic", "Message", "Length", "Des", "Key", });
     internal_static_DMQFollower_Response_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_DMQFollower_Response_fieldAccessorTable = new
-            GeneratedMessageV3.FieldAccessorTable(
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_Response_descriptor,
         new java.lang.String[] { "Errno", "Errmsg", "Data", });
   }

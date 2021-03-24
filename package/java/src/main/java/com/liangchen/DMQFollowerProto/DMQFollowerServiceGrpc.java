@@ -1,7 +1,5 @@
 package com.liangchen.DMQFollowerProto;
 
-import com.google.protobuf.Descriptors;
-
 import static io.grpc.MethodDescriptor.generateFullMethodName;
 import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
@@ -390,12 +388,12 @@ public final class DMQFollowerServiceGrpc {
     DMQFollowerServiceBaseDescriptorSupplier() {}
 
     @java.lang.Override
-    public Descriptors.FileDescriptor getFileDescriptor() {
+    public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
       return com.liangchen.DMQFollowerProto.DMQFollowerProto.getDescriptor();
     }
 
     @java.lang.Override
-    public Descriptors.ServiceDescriptor getServiceDescriptor() {
+    public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
       return getFileDescriptor().findServiceByName("DMQFollowerService");
     }
   }
@@ -415,7 +413,7 @@ public final class DMQFollowerServiceGrpc {
     }
 
     @java.lang.Override
-    public Descriptors.MethodDescriptor getMethodDescriptor() {
+    public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
       return getServiceDescriptor().findMethodByName(methodName);
     }
   }

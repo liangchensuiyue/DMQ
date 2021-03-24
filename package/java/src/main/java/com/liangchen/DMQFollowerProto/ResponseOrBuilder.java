@@ -3,12 +3,9 @@
 
 package com.liangchen.DMQFollowerProto;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.MessageOrBuilder;
-
 public interface ResponseOrBuilder extends
     // @@protoc_insertion_point(interface_extends:DMQFollower.Response)
-        MessageOrBuilder {
+    com.google.protobuf.MessageOrBuilder {
 
   /**
    * <code>int32 errno = 1;</code>
@@ -25,7 +22,7 @@ public interface ResponseOrBuilder extends
    * <code>string errmsg = 2;</code>
    * @return The bytes for errmsg.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getErrmsgBytes();
 
   /**

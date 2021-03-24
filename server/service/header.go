@@ -186,6 +186,81 @@ func (this *server) CommitTx(ctx context.Context, request *headerpd.TxData) (out
 	return out, nil
 }
 
+func (this *server) DeleteKey(ctx context.Context, request *headerpd.KeyIndex) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	index := int(request.Index)
+	file, err := os.Open(filepath.Join(headerconfig.G_Crypto_Dir, "keys"))
+	defer file.Close()
+	if err != nil {
+		out.Errno = 1
+		return out, err
+	}
+	fileinfo, _ := file.Readdir(0)
+	if index >= len(fileinfo) {
+		out.Errno = 1
+		return out, errors.New("out of range")
+	}
+	err = os.Remove(filepath.Join(headerconfig.G_Crypto_Dir, "keys", fileinfo[index].Name()))
+	if err != nil {
+		out.Errno = 1
+		return out, err
+	} else {
+		return out, nil
+	}
+}
+func (this *server) NewKey(ctx context.Context, request *headerpd.KeyData) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	file, err := os.Create(filepath.Join(headerconfig.G_Crypto_Dir, "keys", request.Key))
+	file.Close()
+	if err != nil {
+		out.Errno = 1
+		return out, err
+	}
+	return out, nil
+}
+func (this *server) CreateNewTopic(ctx context.Context, request *headerpd.NewTopicData) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	err = os.Mkdir(filepath.Join(headerconfig.G_Data_Dir, request.Topic), 0755)
+	if err != nil {
+		out.Errno = 1
+		return out, err
+	}
+	file, _err := os.Create(filepath.Join(headerconfig.G_Data_Dir, request.Topic, "data"))
+	defer file.Close()
+	if _err != nil {
+		out.Errno = 1
+		return out, _err
+	}
+	return out, nil
+}
+func (this *server) DeleteTopic(ctx context.Context, request *headerpd.NewTopicData) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	err = os.RemoveAll(filepath.Join(headerconfig.G_Data_Dir, request.Topic))
+	if err != nil {
+		out.Errno = 1
+		return out, err
+	}
+	return out, nil
+}
+func (this *server) Resetcrypto(ctx context.Context, request *headerpd.Crypto) (out *headerpd.Response, err error) {
+	out = &headerpd.Response{Errno: 0}
+	os.RemoveAll(filepath.Join(headerconfig.G_Crypto_Dir, "keys"))
+	os.Mkdir(filepath.Join(headerconfig.G_Crypto_Dir, "ppfile"), 0755)
+	os.Mkdir(filepath.Join(headerconfig.G_Crypto_Dir, "keys"), 0755)
+	pubfile, err1 := os.OpenFile(filepath.Join(headerconfig.G_Crypto_Dir, "ppfile", "pub.pem"), os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0755)
+	prifile, err2 := os.OpenFile(filepath.Join(headerconfig.G_Crypto_Dir, "ppfile", "pri.pem"), os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0755)
+	if err1 != nil || err2 != nil {
+		out.Errno = 1
+		return out, errors.New("fail")
+	}
+	pubfile.Write(request.PubKey)
+	prifile.Write(request.PriKey)
+
+	pubfile.Close()
+	prifile.Close()
+	return out, nil
+}
+
 // 事务proposal
 func (this *server) Prepare(ctx context.Context, request *headerpd.PreTxData) (out *headerpd.Response, err error) {
 	out = &headerpd.Response{Errno: 0}
@@ -204,6 +279,7 @@ func (this *server) Prepare(ctx context.Context, request *headerpd.PreTxData) (o
 
 	return out, nil
 }
+
 func EnterQueue(request *headerpd.MessageData) {
 	request.Length = int64(len([]byte(request.Message)) + 1)
 

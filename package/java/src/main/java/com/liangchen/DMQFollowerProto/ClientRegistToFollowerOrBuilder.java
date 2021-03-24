@@ -3,12 +3,9 @@
 
 package com.liangchen.DMQFollowerProto;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.MessageOrBuilder;
-
 public interface ClientRegistToFollowerOrBuilder extends
     // @@protoc_insertion_point(interface_extends:DMQFollower.ClientRegistToFollower)
-        MessageOrBuilder {
+    com.google.protobuf.MessageOrBuilder {
 
   /**
    * <pre>
@@ -27,7 +24,7 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string nodeid = 1;</code>
    * @return The bytes for nodeid.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getNodeidBytes();
 
   /**
@@ -47,7 +44,7 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string groupname = 2;</code>
    * @return The bytes for groupname.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getGroupnameBytes();
 
   /**
@@ -67,6 +64,26 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string topic = 3;</code>
    * @return The bytes for topic.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getTopicBytes();
+
+  /**
+   * <pre>
+   * 密钥
+   * </pre>
+   *
+   * <code>string key = 4;</code>
+   * @return The key.
+   */
+  java.lang.String getKey();
+  /**
+   * <pre>
+   * 密钥
+   * </pre>
+   *
+   * <code>string key = 4;</code>
+   * @return The bytes for key.
+   */
+  com.google.protobuf.ByteString
+      getKeyBytes();
 }

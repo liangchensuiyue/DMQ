@@ -3,12 +3,9 @@
 
 package com.liangchen.DMQFollowerProto;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.MessageOrBuilder;
-
 public interface FollowerRegistToHeaderOrBuilder extends
     // @@protoc_insertion_point(interface_extends:DMQFollower.FollowerRegistToHeader)
-        MessageOrBuilder {
+    com.google.protobuf.MessageOrBuilder {
 
   /**
    * <pre>
@@ -27,7 +24,7 @@ public interface FollowerRegistToHeaderOrBuilder extends
    * <code>string address = 1;</code>
    * @return The bytes for address.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getAddressBytes();
 
   /**

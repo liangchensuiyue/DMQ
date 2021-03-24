@@ -45,6 +45,28 @@ service DMQHeaderService{
 
     rpc Register2Master (RegisterTopics) returns (Response);
 
+
+
+
+    rpc DeleteKey(KeyIndex)returns(Response){}
+    rpc NewKey(KeyData)returns(Response){}
+    rpc Resetcrypto(Crypto)returns(Response){}
+    rpc CreateNewTopic(NewTopicData)returns(Response){}
+    rpc DeleteTopic(NewTopicData)returns(Response){}
+
+}
+message KeyIndex{
+    int32  Index = 1;
+}
+message KeyData{
+    string  Key = 1;
+}
+message NewTopicData{
+    string Topic = 1;
+}
+message Crypto{
+    bytes PubKey = 1;
+    bytes PriKey = 2;
 }
 message RegisterTopics{
     string Address  = 1;

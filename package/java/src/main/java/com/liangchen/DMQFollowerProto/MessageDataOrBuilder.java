@@ -3,12 +3,9 @@
 
 package com.liangchen.DMQFollowerProto;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.MessageOrBuilder;
-
 public interface MessageDataOrBuilder extends
     // @@protoc_insertion_point(interface_extends:DMQFollower.MessageData)
-        MessageOrBuilder {
+    com.google.protobuf.MessageOrBuilder {
 
   /**
    * <pre>
@@ -27,7 +24,7 @@ public interface MessageDataOrBuilder extends
    * <code>string topic = 1;</code>
    * @return The bytes for topic.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getTopicBytes();
 
   /**
@@ -47,7 +44,7 @@ public interface MessageDataOrBuilder extends
    * <code>string message = 2;</code>
    * @return The bytes for message.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getMessageBytes();
 
   /**
@@ -73,6 +70,26 @@ public interface MessageDataOrBuilder extends
    * <code>string des = 4;</code>
    * @return The bytes for des.
    */
-  ByteString
+  com.google.protobuf.ByteString
       getDesBytes();
+
+  /**
+   * <pre>
+   *密钥
+   * </pre>
+   *
+   * <code>string key = 5;</code>
+   * @return The key.
+   */
+  java.lang.String getKey();
+  /**
+   * <pre>
+   *密钥
+   * </pre>
+   *
+   * <code>string key = 5;</code>
+   * @return The bytes for key.
+   */
+  com.google.protobuf.ByteString
+      getKeyBytes();
 }

@@ -2,6 +2,7 @@ package mycmd
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -10,9 +11,13 @@ import (
 	"path/filepath"
 	"server/mycrypto"
 	"server/mylog"
+	"server/service/exchange"
+	headerpd "server/service/proto/header"
 	"server/utils"
 	"strconv"
 	"strings"
+
+	"google.golang.org/grpc"
 )
 
 var kv map[string]string
@@ -43,9 +48,13 @@ func NewCmd() *Mycmd {
 	return &Mycmd{}
 }
 
+var Config *utils.MyConfig
+
 func (mycmd *Mycmd) StartCmdLine(config *utils.MyConfig) {
+	Config = config
 	var cmd string
 	for {
+		headers := GetQuorumInfo()
 		fmt.Print("DMQ> ")
 		reader := bufio.NewReader(os.Stdin)
 		strBytes, _, _ := reader.ReadLine()
@@ -87,12 +96,24 @@ func (mycmd *Mycmd) StartCmdLine(config *utils.MyConfig) {
 				mylog.Error("创建失败: " + err.Error())
 				break
 			}
+			for _, v := range headers {
+				v.Service.CreateNewTopic(context.Background(), &headerpd.NewTopicData{
+					Topic: arg2,
+				})
+
+			}
 			mylog.Success(fmt.Sprintf("创建成功: %s", arg2))
 		case "delete":
 			err := os.RemoveAll(filepath.Join(config.G_Data_Dir, arg2))
 			if err != nil {
 				mylog.Error(fmt.Sprintf("topic(%s) 删除失败: %s", arg2, err.Error()))
 				break
+			}
+			for _, v := range headers {
+				v.Service.DeleteTopic(context.Background(), &headerpd.NewTopicData{
+					Topic: arg2,
+				})
+
 			}
 			mylog.Success(fmt.Sprintf("topic(%s) 删除成功", arg2))
 		case "listtopic":
@@ -108,6 +129,25 @@ func (mycmd *Mycmd) StartCmdLine(config *utils.MyConfig) {
 			os.Mkdir(filepath.Join(config.G_Crypto_Dir, "ppfile"), 0755)
 			os.Mkdir(filepath.Join(config.G_Crypto_Dir, "keys"), 0755)
 			mycrypto.GenerateRsaKey(256, filepath.Join(config.G_Crypto_Dir, "ppfile"))
+
+			pubfile, err1 := os.Open(filepath.Join(config.G_Crypto_Dir, "ppfile", "pub.pem"))
+			prifile, err2 := os.Open(filepath.Join(config.G_Crypto_Dir, "ppfile", "pri.pem"))
+			defer pubfile.Close()
+			defer prifile.Close()
+			if err1 != nil || err2 != nil {
+				break
+			}
+
+			pub, err3 := ioutil.ReadAll(pubfile)
+			pri, _ := ioutil.ReadAll(prifile)
+			fmt.Println(len(pub), len(pri), err3)
+			for _, v := range headers {
+				v.Service.Resetcrypto(context.Background(), &headerpd.Crypto{
+					PubKey: pub,
+					PriKey: pri,
+				})
+
+			}
 			mylog.Success("success")
 		case "listkeys":
 			file, err := os.Open(filepath.Join(config.G_Crypto_Dir, "keys"))
@@ -128,6 +168,12 @@ func (mycmd *Mycmd) StartCmdLine(config *utils.MyConfig) {
 			fmt.Println(newkey)
 			file, _ := os.Create(filepath.Join(config.G_Crypto_Dir, "keys", newkey))
 			file.Close()
+			for _, v := range headers {
+				v.Service.NewKey(context.Background(), &headerpd.KeyData{
+					Key: newkey,
+				})
+
+			}
 			mylog.Success("success")
 		case "deletekey":
 			index, err := strconv.Atoi(arg2)
@@ -157,4 +203,40 @@ func (mycmd *Mycmd) StartCmdLine(config *utils.MyConfig) {
 			os.Exit(0)
 		}
 	}
+}
+func GetQuorumInfo() []*exchange.HeaderNodeInfo {
+	headers := make([]*exchange.HeaderNodeInfo, 0)
+	_headers := make([]*exchange.HeaderNodeInfo, 0)
+	for _, v := range Config.G_Quorum {
+		addr := strings.Split(v, ":")
+		if len(addr) != 2 {
+			mylog.Error("quroums error")
+			os.Exit(0)
+		}
+		port, _ := strconv.Atoi(addr[1])
+		_headers = append(_headers, &exchange.HeaderNodeInfo{Address: addr[0], Port: int32(port)})
+	}
+	for i := 0; i < len(_headers); i++ {
+		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", _headers[i].Address, _headers[i].Port), grpc.WithInsecure())
+		if err != nil {
+			mylog.Error(fmt.Sprintf("%s:%d  %s", _headers[i].Address, _headers[i].Port, "link error"))
+			continue
+		}
+		_headers[i].Service = headerpd.NewDMQHeaderServiceClient(conn)
+		info, err1 := _headers[i].Service.GetHeaderInfoRequest(context.Background(), &headerpd.HeaderInfo{})
+
+		if err1 != nil {
+			mylog.Error(fmt.Sprintf("%s:%d  %s", _headers[i].Address, _headers[i].Port, "link error"))
+			continue
+		}
+		_headers[i].NodeId = info.NodeId
+		_headers[i].Weight = info.Weight
+		_headers[i].CurrentTxId = info.CurrentTxId
+		_headers[i].MasterAddress = info.MasterAddress
+		_headers[i].RegisterTopics = info.RegisterTopics
+
+		headers = append(headers, _headers[i])
+
+	}
+	return headers
 }
