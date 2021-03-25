@@ -10,6 +10,7 @@
 
 
     window.onload = function() {
+        var num = 0;
         //可以看到客户端JS，很容易的就通过WebSocket函数建立了一个与服务器的连接sock，当握手成功后，会触发WebScoket对象的onopen事件，告诉客户端连接已经成功建立。客户端一共绑定了四个事件。
         console.log("开始了 onload");
 
@@ -24,7 +25,9 @@
         }
         // 收到消息后触发
         sock.onmessage = function(e) {
-            console.log("收到消息后触发 message received: " + e.data);
+            num++
+            console.log(num,e.data)
+            // console.log("收到消息后触发 message received: " + e.data);
         }
         //发生错误的时候触发
         sock.onerror=function (e) {
@@ -36,7 +39,7 @@
         var obj = {
             Groupname :"test",
             Topic:"phone",
-            Key:"LR2bSvljK7pou+fWGTarsA96euvD1ZA+97NyTEk0lJk=",
+            Key:"hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=",
         }
         sock.send(JSON.stringify(obj));
     };

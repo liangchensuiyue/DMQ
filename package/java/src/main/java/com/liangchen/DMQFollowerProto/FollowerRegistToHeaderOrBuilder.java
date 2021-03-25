@@ -15,7 +15,7 @@ public interface FollowerRegistToHeaderOrBuilder extends
    * <code>string address = 1;</code>
    * @return The address.
    */
-  java.lang.String getAddress();
+  String getAddress();
   /**
    * <pre>
    * 绑定的ip 地址

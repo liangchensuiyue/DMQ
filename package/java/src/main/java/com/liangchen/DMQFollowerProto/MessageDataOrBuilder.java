@@ -15,7 +15,7 @@ public interface MessageDataOrBuilder extends
    * <code>string topic = 1;</code>
    * @return The topic.
    */
-  java.lang.String getTopic();
+  String getTopic();
   /**
    * <pre>
    * 数据对应的topic
@@ -35,7 +35,7 @@ public interface MessageDataOrBuilder extends
    * <code>string message = 2;</code>
    * @return The message.
    */
-  java.lang.String getMessage();
+  String getMessage();
   /**
    * <pre>
    * 真正的数据
@@ -61,7 +61,7 @@ public interface MessageDataOrBuilder extends
    * <code>string des = 4;</code>
    * @return The des.
    */
-  java.lang.String getDes();
+  String getDes();
   /**
    * <pre>
    * 附加信息
@@ -81,7 +81,7 @@ public interface MessageDataOrBuilder extends
    * <code>string key = 5;</code>
    * @return The key.
    */
-  java.lang.String getKey();
+  String getKey();
   /**
    * <pre>
    *密钥

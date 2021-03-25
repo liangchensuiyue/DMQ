@@ -19,13 +19,15 @@ public class test {
     @Test
     public void consume() throws Exception {
         final  int i = 0;
-        DmqBuilder builder =  DMQFactory.newBuilder("127.0.0.1",9201);
+        DmqBuilder builder =  DMQFactory.newBuilder("127.0.0.1",9208);
 
         // 创建一个消费者
-        DmqObject  consumer =  builder.buildConsumer("default", "test");
+        DmqObject  consumer =  builder.buildConsumer("phone", "test","hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=");
         consumer.receive( response -> {
             test.this.i++;
-            System.out.printf("%d  %s\n",test.this.i,response.getData());
+//            if (test.this.i % 1000 == 0){
+                System.out.printf("%d  %s\n",test.this.i,response.getData());
+//            }
         });
         // 打开链接
         consumer.connect();
@@ -37,10 +39,13 @@ public class test {
         DmqBuilder builder =  DMQFactory.newBuilder("127.0.0.1",9202);
 
         // 创建一个消费者
-        DmqObject  consumer =  builder.buildConsumer("default", "test");
+        DmqObject  consumer =  builder.buildConsumer("default", "test", "hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=");
+
         consumer.receive( response -> {
             test.this.i++;
-            System.out.printf("%d  %s\n",test.this.i,response.getData());
+            if (test.this.i % 1000 == 0){
+                System.out.printf("%d  %s\n",test.this.i,response.getData());
+            }
         });
         // 打开链接
         consumer.connect();
@@ -52,10 +57,10 @@ public class test {
 
 //    @Test
     public  static void produce1() throws Exception {
-        DmqBuilder builder =  DMQFactory.newBuilder("127.0.0.1",9201);
+        DmqBuilder builder =  DMQFactory.newBuilder("127.0.0.1",9208);
 
         // 创建一个消费者
-        DmqObject  producer =  builder.buildProducer("default");
+        DmqObject  producer =  builder.buildProducer("phone","hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=");
         producer.receive( response -> {
             System.out.println(response.getData().getMessage());
         });
@@ -72,7 +77,7 @@ public class test {
             String a= in1.readLine();
             i++;
             if(i ==20000){
-                Thread.sleep(100000);
+                Thread.sleep(10000000);
                 break;
             }
             producer.send(a);
@@ -99,7 +104,7 @@ public class test {
         DmqBuilder builder =  DMQFactory.newBuilder("127.0.0.1",9201);
 
         // 创建一个消费者
-        DmqObject  producer =  builder.buildProducer("default");
+        DmqObject  producer =  builder.buildProducer("default","hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=");
         producer.receive( response -> {
             System.out.println(response.getData().getMessage());
         });

@@ -26,14 +26,14 @@ private static final long serialVersionUID = 0L;
     key_ = "";
   }
 
-  @java.lang.Override
+  @Override
   @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
+  protected Object newInstance(
       UnusedPrivateParameter unused) {
     return new ClientRegistToFollower();
   }
 
-  @java.lang.Override
+  @Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -44,7 +44,7 @@ private static final long serialVersionUID = 0L;
       throws com.google.protobuf.InvalidProtocolBufferException {
     this();
     if (extensionRegistry == null) {
-      throw new java.lang.NullPointerException();
+      throw new NullPointerException();
     }
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
@@ -57,25 +57,25 @@ private static final long serialVersionUID = 0L;
             done = true;
             break;
           case 10: {
-            java.lang.String s = input.readStringRequireUtf8();
+            String s = input.readStringRequireUtf8();
 
             nodeid_ = s;
             break;
           }
           case 18: {
-            java.lang.String s = input.readStringRequireUtf8();
+            String s = input.readStringRequireUtf8();
 
             groupname_ = s;
             break;
           }
           case 26: {
-            java.lang.String s = input.readStringRequireUtf8();
+            String s = input.readStringRequireUtf8();
 
             topic_ = s;
             break;
           }
           case 34: {
-            java.lang.String s = input.readStringRequireUtf8();
+            String s = input.readStringRequireUtf8();
 
             key_ = s;
             break;
@@ -101,19 +101,19 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.liangchen.DMQFollowerProto.DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_descriptor;
+    return DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_descriptor;
   }
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+  @Override
+  protected FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.liangchen.DMQFollowerProto.DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable
+    return DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.liangchen.DMQFollowerProto.ClientRegistToFollower.class, com.liangchen.DMQFollowerProto.ClientRegistToFollower.Builder.class);
+            ClientRegistToFollower.class, ClientRegistToFollower.Builder.class);
   }
 
   public static final int NODEID_FIELD_NUMBER = 1;
-  private volatile java.lang.Object nodeid_;
+  private volatile Object nodeid_;
   /**
    * <pre>
    * 节点id
@@ -122,15 +122,15 @@ private static final long serialVersionUID = 0L;
    * <code>string nodeid = 1;</code>
    * @return The nodeid.
    */
-  @java.lang.Override
-  public java.lang.String getNodeid() {
-    java.lang.Object ref = nodeid_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
+  @Override
+  public String getNodeid() {
+    Object ref = nodeid_;
+    if (ref instanceof String) {
+      return (String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
+      com.google.protobuf.ByteString bs =
           (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
+      String s = bs.toStringUtf8();
       nodeid_ = s;
       return s;
     }
@@ -143,14 +143,14 @@ private static final long serialVersionUID = 0L;
    * <code>string nodeid = 1;</code>
    * @return The bytes for nodeid.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString
       getNodeidBytes() {
-    java.lang.Object ref = nodeid_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
+    Object ref = nodeid_;
+    if (ref instanceof String) {
+      com.google.protobuf.ByteString b =
           com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+              (String) ref);
       nodeid_ = b;
       return b;
     } else {
@@ -159,7 +159,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int GROUPNAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object groupname_;
+  private volatile Object groupname_;
   /**
    * <pre>
    * 消费者组名
@@ -168,15 +168,15 @@ private static final long serialVersionUID = 0L;
    * <code>string groupname = 2;</code>
    * @return The groupname.
    */
-  @java.lang.Override
-  public java.lang.String getGroupname() {
-    java.lang.Object ref = groupname_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
+  @Override
+  public String getGroupname() {
+    Object ref = groupname_;
+    if (ref instanceof String) {
+      return (String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
+      com.google.protobuf.ByteString bs =
           (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
+      String s = bs.toStringUtf8();
       groupname_ = s;
       return s;
     }
@@ -189,14 +189,14 @@ private static final long serialVersionUID = 0L;
    * <code>string groupname = 2;</code>
    * @return The bytes for groupname.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString
       getGroupnameBytes() {
-    java.lang.Object ref = groupname_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
+    Object ref = groupname_;
+    if (ref instanceof String) {
+      com.google.protobuf.ByteString b =
           com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+              (String) ref);
       groupname_ = b;
       return b;
     } else {
@@ -205,7 +205,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int TOPIC_FIELD_NUMBER = 3;
-  private volatile java.lang.Object topic_;
+  private volatile Object topic_;
   /**
    * <pre>
    * 话题名称
@@ -214,15 +214,15 @@ private static final long serialVersionUID = 0L;
    * <code>string topic = 3;</code>
    * @return The topic.
    */
-  @java.lang.Override
-  public java.lang.String getTopic() {
-    java.lang.Object ref = topic_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
+  @Override
+  public String getTopic() {
+    Object ref = topic_;
+    if (ref instanceof String) {
+      return (String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
+      com.google.protobuf.ByteString bs =
           (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
+      String s = bs.toStringUtf8();
       topic_ = s;
       return s;
     }
@@ -235,14 +235,14 @@ private static final long serialVersionUID = 0L;
    * <code>string topic = 3;</code>
    * @return The bytes for topic.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString
       getTopicBytes() {
-    java.lang.Object ref = topic_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
+    Object ref = topic_;
+    if (ref instanceof String) {
+      com.google.protobuf.ByteString b =
           com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+              (String) ref);
       topic_ = b;
       return b;
     } else {
@@ -251,7 +251,7 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int KEY_FIELD_NUMBER = 4;
-  private volatile java.lang.Object key_;
+  private volatile Object key_;
   /**
    * <pre>
    * 密钥
@@ -260,15 +260,15 @@ private static final long serialVersionUID = 0L;
    * <code>string key = 4;</code>
    * @return The key.
    */
-  @java.lang.Override
-  public java.lang.String getKey() {
-    java.lang.Object ref = key_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
+  @Override
+  public String getKey() {
+    Object ref = key_;
+    if (ref instanceof String) {
+      return (String) ref;
     } else {
-      com.google.protobuf.ByteString bs = 
+      com.google.protobuf.ByteString bs =
           (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
+      String s = bs.toStringUtf8();
       key_ = s;
       return s;
     }
@@ -281,14 +281,14 @@ private static final long serialVersionUID = 0L;
    * <code>string key = 4;</code>
    * @return The bytes for key.
    */
-  @java.lang.Override
+  @Override
   public com.google.protobuf.ByteString
       getKeyBytes() {
-    java.lang.Object ref = key_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
+    Object ref = key_;
+    if (ref instanceof String) {
+      com.google.protobuf.ByteString b =
           com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
+              (String) ref);
       key_ = b;
       return b;
     } else {
@@ -297,7 +297,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
-  @java.lang.Override
+  @Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -307,7 +307,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (!getNodeidBytes().isEmpty()) {
@@ -325,7 +325,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
-  @java.lang.Override
+  @Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -348,15 +348,15 @@ private static final long serialVersionUID = 0L;
     return size;
   }
 
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
+  @Override
+  public boolean equals(final Object obj) {
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.liangchen.DMQFollowerProto.ClientRegistToFollower)) {
+    if (!(obj instanceof ClientRegistToFollower)) {
       return super.equals(obj);
     }
-    com.liangchen.DMQFollowerProto.ClientRegistToFollower other = (com.liangchen.DMQFollowerProto.ClientRegistToFollower) obj;
+    ClientRegistToFollower other = (ClientRegistToFollower) obj;
 
     if (!getNodeid()
         .equals(other.getNodeid())) return false;
@@ -370,7 +370,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
-  @java.lang.Override
+  @Override
   public int hashCode() {
     if (memoizedHashCode != 0) {
       return memoizedHashCode;
@@ -390,69 +390,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(byte[] data)
+  public static ClientRegistToFollower parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(java.io.InputStream input)
+  public static ClientRegistToFollower parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseDelimitedFrom(java.io.InputStream input)
+  public static ClientRegistToFollower parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseDelimitedFrom(
+  public static ClientRegistToFollower parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower parseFrom(
+  public static ClientRegistToFollower parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -460,23 +460,23 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  @java.lang.Override
+  @Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.liangchen.DMQFollowerProto.ClientRegistToFollower prototype) {
+  public static Builder newBuilder(ClientRegistToFollower prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
-  @java.lang.Override
+  @Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
   }
 
-  @java.lang.Override
+  @Override
   protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      BuilderParent parent) {
     Builder builder = new Builder(parent);
     return builder;
   }
@@ -490,18 +490,18 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:DMQFollower.ClientRegistToFollower)
-      com.liangchen.DMQFollowerProto.ClientRegistToFollowerOrBuilder {
+      ClientRegistToFollowerOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.liangchen.DMQFollowerProto.DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_descriptor;
+      return DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_descriptor;
     }
 
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+    @Override
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.liangchen.DMQFollowerProto.DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable
+      return DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.liangchen.DMQFollowerProto.ClientRegistToFollower.class, com.liangchen.DMQFollowerProto.ClientRegistToFollower.Builder.class);
+              ClientRegistToFollower.class, ClientRegistToFollower.Builder.class);
     }
 
     // Construct using com.liangchen.DMQFollowerProto.ClientRegistToFollower.newBuilder()
@@ -510,7 +510,7 @@ private static final long serialVersionUID = 0L;
     }
 
     private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        BuilderParent parent) {
       super(parent);
       maybeForceBuilderInitialization();
     }
@@ -519,7 +519,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
-    @java.lang.Override
+    @Override
     public Builder clear() {
       super.clear();
       nodeid_ = "";
@@ -533,29 +533,29 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.liangchen.DMQFollowerProto.DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_descriptor;
+      return DMQFollowerProto.internal_static_DMQFollower_ClientRegistToFollower_descriptor;
     }
 
-    @java.lang.Override
-    public com.liangchen.DMQFollowerProto.ClientRegistToFollower getDefaultInstanceForType() {
-      return com.liangchen.DMQFollowerProto.ClientRegistToFollower.getDefaultInstance();
+    @Override
+    public ClientRegistToFollower getDefaultInstanceForType() {
+      return ClientRegistToFollower.getDefaultInstance();
     }
 
-    @java.lang.Override
-    public com.liangchen.DMQFollowerProto.ClientRegistToFollower build() {
-      com.liangchen.DMQFollowerProto.ClientRegistToFollower result = buildPartial();
+    @Override
+    public ClientRegistToFollower build() {
+      ClientRegistToFollower result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    @java.lang.Override
-    public com.liangchen.DMQFollowerProto.ClientRegistToFollower buildPartial() {
-      com.liangchen.DMQFollowerProto.ClientRegistToFollower result = new com.liangchen.DMQFollowerProto.ClientRegistToFollower(this);
+    @Override
+    public ClientRegistToFollower buildPartial() {
+      ClientRegistToFollower result = new ClientRegistToFollower(this);
       result.nodeid_ = nodeid_;
       result.groupname_ = groupname_;
       result.topic_ = topic_;
@@ -564,50 +564,50 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
-    @java.lang.Override
+    @Override
     public Builder clone() {
       return super.clone();
     }
-    @java.lang.Override
+    @Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
+        Object value) {
       return super.setField(field, value);
     }
-    @java.lang.Override
+    @Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
       return super.clearField(field);
     }
-    @java.lang.Override
+    @Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
       return super.clearOneof(oneof);
     }
-    @java.lang.Override
+    @Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
-        int index, java.lang.Object value) {
+        int index, Object value) {
       return super.setRepeatedField(field, index, value);
     }
-    @java.lang.Override
+    @Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
+        Object value) {
       return super.addRepeatedField(field, value);
     }
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.liangchen.DMQFollowerProto.ClientRegistToFollower) {
-        return mergeFrom((com.liangchen.DMQFollowerProto.ClientRegistToFollower)other);
+      if (other instanceof ClientRegistToFollower) {
+        return mergeFrom((ClientRegistToFollower)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.liangchen.DMQFollowerProto.ClientRegistToFollower other) {
-      if (other == com.liangchen.DMQFollowerProto.ClientRegistToFollower.getDefaultInstance()) return this;
+    public Builder mergeFrom(ClientRegistToFollower other) {
+      if (other == ClientRegistToFollower.getDefaultInstance()) return this;
       if (!other.getNodeid().isEmpty()) {
         nodeid_ = other.nodeid_;
         onChanged();
@@ -629,21 +629,21 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    @java.lang.Override
+    @Override
     public final boolean isInitialized() {
       return true;
     }
 
-    @java.lang.Override
+    @Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      com.liangchen.DMQFollowerProto.ClientRegistToFollower parsedMessage = null;
+      ClientRegistToFollower parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (com.liangchen.DMQFollowerProto.ClientRegistToFollower) e.getUnfinishedMessage();
+        parsedMessage = (ClientRegistToFollower) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -653,7 +653,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object nodeid_ = "";
+    private Object nodeid_ = "";
     /**
      * <pre>
      * 节点id
@@ -662,16 +662,16 @@ private static final long serialVersionUID = 0L;
      * <code>string nodeid = 1;</code>
      * @return The nodeid.
      */
-    public java.lang.String getNodeid() {
-      java.lang.Object ref = nodeid_;
-      if (!(ref instanceof java.lang.String)) {
+    public String getNodeid() {
+      Object ref = nodeid_;
+      if (!(ref instanceof String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
+        String s = bs.toStringUtf8();
         nodeid_ = s;
         return s;
       } else {
-        return (java.lang.String) ref;
+        return (String) ref;
       }
     }
     /**
@@ -684,11 +684,11 @@ private static final long serialVersionUID = 0L;
      */
     public com.google.protobuf.ByteString
         getNodeidBytes() {
-      java.lang.Object ref = nodeid_;
+      Object ref = nodeid_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+                (String) ref);
         nodeid_ = b;
         return b;
       } else {
@@ -705,11 +705,11 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder setNodeid(
-        java.lang.String value) {
+        String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  
+
       nodeid_ = value;
       onChanged();
       return this;
@@ -723,7 +723,7 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder clearNodeid() {
-      
+
       nodeid_ = getDefaultInstance().getNodeid();
       onChanged();
       return this;
@@ -743,13 +743,13 @@ private static final long serialVersionUID = 0L;
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-      
+
       nodeid_ = value;
       onChanged();
       return this;
     }
 
-    private java.lang.Object groupname_ = "";
+    private Object groupname_ = "";
     /**
      * <pre>
      * 消费者组名
@@ -758,16 +758,16 @@ private static final long serialVersionUID = 0L;
      * <code>string groupname = 2;</code>
      * @return The groupname.
      */
-    public java.lang.String getGroupname() {
-      java.lang.Object ref = groupname_;
-      if (!(ref instanceof java.lang.String)) {
+    public String getGroupname() {
+      Object ref = groupname_;
+      if (!(ref instanceof String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
+        String s = bs.toStringUtf8();
         groupname_ = s;
         return s;
       } else {
-        return (java.lang.String) ref;
+        return (String) ref;
       }
     }
     /**
@@ -780,11 +780,11 @@ private static final long serialVersionUID = 0L;
      */
     public com.google.protobuf.ByteString
         getGroupnameBytes() {
-      java.lang.Object ref = groupname_;
+      Object ref = groupname_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+                (String) ref);
         groupname_ = b;
         return b;
       } else {
@@ -801,11 +801,11 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder setGroupname(
-        java.lang.String value) {
+        String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  
+
       groupname_ = value;
       onChanged();
       return this;
@@ -819,7 +819,7 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder clearGroupname() {
-      
+
       groupname_ = getDefaultInstance().getGroupname();
       onChanged();
       return this;
@@ -839,13 +839,13 @@ private static final long serialVersionUID = 0L;
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-      
+
       groupname_ = value;
       onChanged();
       return this;
     }
 
-    private java.lang.Object topic_ = "";
+    private Object topic_ = "";
     /**
      * <pre>
      * 话题名称
@@ -854,16 +854,16 @@ private static final long serialVersionUID = 0L;
      * <code>string topic = 3;</code>
      * @return The topic.
      */
-    public java.lang.String getTopic() {
-      java.lang.Object ref = topic_;
-      if (!(ref instanceof java.lang.String)) {
+    public String getTopic() {
+      Object ref = topic_;
+      if (!(ref instanceof String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
+        String s = bs.toStringUtf8();
         topic_ = s;
         return s;
       } else {
-        return (java.lang.String) ref;
+        return (String) ref;
       }
     }
     /**
@@ -876,11 +876,11 @@ private static final long serialVersionUID = 0L;
      */
     public com.google.protobuf.ByteString
         getTopicBytes() {
-      java.lang.Object ref = topic_;
+      Object ref = topic_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+                (String) ref);
         topic_ = b;
         return b;
       } else {
@@ -897,11 +897,11 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder setTopic(
-        java.lang.String value) {
+        String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  
+
       topic_ = value;
       onChanged();
       return this;
@@ -915,7 +915,7 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder clearTopic() {
-      
+
       topic_ = getDefaultInstance().getTopic();
       onChanged();
       return this;
@@ -935,13 +935,13 @@ private static final long serialVersionUID = 0L;
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-      
+
       topic_ = value;
       onChanged();
       return this;
     }
 
-    private java.lang.Object key_ = "";
+    private Object key_ = "";
     /**
      * <pre>
      * 密钥
@@ -950,16 +950,16 @@ private static final long serialVersionUID = 0L;
      * <code>string key = 4;</code>
      * @return The key.
      */
-    public java.lang.String getKey() {
-      java.lang.Object ref = key_;
-      if (!(ref instanceof java.lang.String)) {
+    public String getKey() {
+      Object ref = key_;
+      if (!(ref instanceof String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
+        String s = bs.toStringUtf8();
         key_ = s;
         return s;
       } else {
-        return (java.lang.String) ref;
+        return (String) ref;
       }
     }
     /**
@@ -972,11 +972,11 @@ private static final long serialVersionUID = 0L;
      */
     public com.google.protobuf.ByteString
         getKeyBytes() {
-      java.lang.Object ref = key_;
+      Object ref = key_;
       if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+                (String) ref);
         key_ = b;
         return b;
       } else {
@@ -993,11 +993,11 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder setKey(
-        java.lang.String value) {
+        String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  
+
       key_ = value;
       onChanged();
       return this;
@@ -1011,7 +1011,7 @@ private static final long serialVersionUID = 0L;
      * @return This builder for chaining.
      */
     public Builder clearKey() {
-      
+
       key_ = getDefaultInstance().getKey();
       onChanged();
       return this;
@@ -1031,18 +1031,18 @@ private static final long serialVersionUID = 0L;
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-      
+
       key_ = value;
       onChanged();
       return this;
     }
-    @java.lang.Override
+    @Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
-    @java.lang.Override
+    @Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1053,18 +1053,18 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:DMQFollower.ClientRegistToFollower)
-  private static final com.liangchen.DMQFollowerProto.ClientRegistToFollower DEFAULT_INSTANCE;
+  private static final ClientRegistToFollower DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.liangchen.DMQFollowerProto.ClientRegistToFollower();
+    DEFAULT_INSTANCE = new ClientRegistToFollower();
   }
 
-  public static com.liangchen.DMQFollowerProto.ClientRegistToFollower getDefaultInstance() {
+  public static ClientRegistToFollower getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
   private static final com.google.protobuf.Parser<ClientRegistToFollower>
       PARSER = new com.google.protobuf.AbstractParser<ClientRegistToFollower>() {
-    @java.lang.Override
+    @Override
     public ClientRegistToFollower parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1077,13 +1077,13 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
-  @java.lang.Override
+  @Override
   public com.google.protobuf.Parser<ClientRegistToFollower> getParserForType() {
     return PARSER;
   }
 
-  @java.lang.Override
-  public com.liangchen.DMQFollowerProto.ClientRegistToFollower getDefaultInstanceForType() {
+  @Override
+  public ClientRegistToFollower getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

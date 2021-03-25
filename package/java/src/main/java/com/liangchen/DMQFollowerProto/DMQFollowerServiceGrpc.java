@@ -1,19 +1,14 @@
 package com.liangchen.DMQFollowerProto;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
-import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
-import static io.grpc.stub.ClientCalls.blockingUnaryCall;
-import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
+import static io.grpc.stub.ClientCalls.*;
 import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
+import static io.grpc.stub.ServerCalls.*;
 
 /**
  */
@@ -27,29 +22,29 @@ public final class DMQFollowerServiceGrpc {
   public static final String SERVICE_NAME = "DMQFollower.DMQFollowerService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.MessageData,
-      com.liangchen.DMQFollowerProto.Response> getClientYieldMsgDataRequestMethod;
+  private static volatile io.grpc.MethodDescriptor<MessageData,
+      Response> getClientYieldMsgDataRequestMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ClientYieldMsgDataRequest",
-      requestType = com.liangchen.DMQFollowerProto.MessageData.class,
-      responseType = com.liangchen.DMQFollowerProto.Response.class,
+      requestType = MessageData.class,
+      responseType = Response.class,
       methodType = io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
-  public static io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.MessageData,
-      com.liangchen.DMQFollowerProto.Response> getClientYieldMsgDataRequestMethod() {
-    io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.MessageData, com.liangchen.DMQFollowerProto.Response> getClientYieldMsgDataRequestMethod;
+  public static io.grpc.MethodDescriptor<MessageData,
+      Response> getClientYieldMsgDataRequestMethod() {
+    io.grpc.MethodDescriptor<MessageData, Response> getClientYieldMsgDataRequestMethod;
     if ((getClientYieldMsgDataRequestMethod = DMQFollowerServiceGrpc.getClientYieldMsgDataRequestMethod) == null) {
       synchronized (DMQFollowerServiceGrpc.class) {
         if ((getClientYieldMsgDataRequestMethod = DMQFollowerServiceGrpc.getClientYieldMsgDataRequestMethod) == null) {
           DMQFollowerServiceGrpc.getClientYieldMsgDataRequestMethod = getClientYieldMsgDataRequestMethod =
-              io.grpc.MethodDescriptor.<com.liangchen.DMQFollowerProto.MessageData, com.liangchen.DMQFollowerProto.Response>newBuilder()
+              io.grpc.MethodDescriptor.<MessageData, Response>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.CLIENT_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ClientYieldMsgDataRequest"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.liangchen.DMQFollowerProto.MessageData.getDefaultInstance()))
+                  MessageData.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.liangchen.DMQFollowerProto.Response.getDefaultInstance()))
+                  Response.getDefaultInstance()))
               .setSchemaDescriptor(new DMQFollowerServiceMethodDescriptorSupplier("ClientYieldMsgDataRequest"))
               .build();
         }
@@ -59,28 +54,28 @@ public final class DMQFollowerServiceGrpc {
   }
 
   private static volatile io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower,
-      com.liangchen.DMQFollowerProto.Response> getClientConsumeDataMethod;
+      Response> getClientConsumeDataMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ClientConsumeData",
       requestType = com.liangchen.DMQFollowerProto.ClientRegistToFollower.class,
-      responseType = com.liangchen.DMQFollowerProto.Response.class,
+      responseType = Response.class,
       methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
   public static io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower,
-      com.liangchen.DMQFollowerProto.Response> getClientConsumeDataMethod() {
-    io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower, com.liangchen.DMQFollowerProto.Response> getClientConsumeDataMethod;
+      Response> getClientConsumeDataMethod() {
+    io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower, Response> getClientConsumeDataMethod;
     if ((getClientConsumeDataMethod = DMQFollowerServiceGrpc.getClientConsumeDataMethod) == null) {
       synchronized (DMQFollowerServiceGrpc.class) {
         if ((getClientConsumeDataMethod = DMQFollowerServiceGrpc.getClientConsumeDataMethod) == null) {
           DMQFollowerServiceGrpc.getClientConsumeDataMethod = getClientConsumeDataMethod =
-              io.grpc.MethodDescriptor.<com.liangchen.DMQFollowerProto.ClientRegistToFollower, com.liangchen.DMQFollowerProto.Response>newBuilder()
+              io.grpc.MethodDescriptor.<com.liangchen.DMQFollowerProto.ClientRegistToFollower, Response>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ClientConsumeData"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.liangchen.DMQFollowerProto.ClientRegistToFollower.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.liangchen.DMQFollowerProto.Response.getDefaultInstance()))
+                  Response.getDefaultInstance()))
               .setSchemaDescriptor(new DMQFollowerServiceMethodDescriptorSupplier("ClientConsumeData"))
               .build();
         }
@@ -90,28 +85,28 @@ public final class DMQFollowerServiceGrpc {
   }
 
   private static volatile io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower,
-      com.liangchen.DMQFollowerProto.Response> getClientCloseChannelMethod;
+      Response> getClientCloseChannelMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "ClientCloseChannel",
       requestType = com.liangchen.DMQFollowerProto.ClientRegistToFollower.class,
-      responseType = com.liangchen.DMQFollowerProto.Response.class,
+      responseType = Response.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
   public static io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower,
-      com.liangchen.DMQFollowerProto.Response> getClientCloseChannelMethod() {
-    io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower, com.liangchen.DMQFollowerProto.Response> getClientCloseChannelMethod;
+      Response> getClientCloseChannelMethod() {
+    io.grpc.MethodDescriptor<com.liangchen.DMQFollowerProto.ClientRegistToFollower, Response> getClientCloseChannelMethod;
     if ((getClientCloseChannelMethod = DMQFollowerServiceGrpc.getClientCloseChannelMethod) == null) {
       synchronized (DMQFollowerServiceGrpc.class) {
         if ((getClientCloseChannelMethod = DMQFollowerServiceGrpc.getClientCloseChannelMethod) == null) {
           DMQFollowerServiceGrpc.getClientCloseChannelMethod = getClientCloseChannelMethod =
-              io.grpc.MethodDescriptor.<com.liangchen.DMQFollowerProto.ClientRegistToFollower, com.liangchen.DMQFollowerProto.Response>newBuilder()
+              io.grpc.MethodDescriptor.<com.liangchen.DMQFollowerProto.ClientRegistToFollower, Response>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ClientCloseChannel"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   com.liangchen.DMQFollowerProto.ClientRegistToFollower.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  com.liangchen.DMQFollowerProto.Response.getDefaultInstance()))
+                  Response.getDefaultInstance()))
               .setSchemaDescriptor(new DMQFollowerServiceMethodDescriptorSupplier("ClientCloseChannel"))
               .build();
         }
@@ -126,7 +121,7 @@ public final class DMQFollowerServiceGrpc {
   public static DMQFollowerServiceStub newStub(io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<DMQFollowerServiceStub> factory =
       new io.grpc.stub.AbstractStub.StubFactory<DMQFollowerServiceStub>() {
-        @java.lang.Override
+        @Override
         public DMQFollowerServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
           return new DMQFollowerServiceStub(channel, callOptions);
         }
@@ -141,7 +136,7 @@ public final class DMQFollowerServiceGrpc {
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<DMQFollowerServiceBlockingStub> factory =
       new io.grpc.stub.AbstractStub.StubFactory<DMQFollowerServiceBlockingStub>() {
-        @java.lang.Override
+        @Override
         public DMQFollowerServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
           return new DMQFollowerServiceBlockingStub(channel, callOptions);
         }
@@ -156,7 +151,7 @@ public final class DMQFollowerServiceGrpc {
       io.grpc.Channel channel) {
     io.grpc.stub.AbstractStub.StubFactory<DMQFollowerServiceFutureStub> factory =
       new io.grpc.stub.AbstractStub.StubFactory<DMQFollowerServiceFutureStub>() {
-        @java.lang.Override
+        @Override
         public DMQFollowerServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
           return new DMQFollowerServiceFutureStub(channel, callOptions);
         }
@@ -173,8 +168,8 @@ public final class DMQFollowerServiceGrpc {
      * 客户端向 follower 发送数据
      * </pre>
      */
-    public io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.MessageData> clientYieldMsgDataRequest(
-        io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response> responseObserver) {
+    public io.grpc.stub.StreamObserver<MessageData> clientYieldMsgDataRequest(
+        io.grpc.stub.StreamObserver<Response> responseObserver) {
       return asyncUnimplementedStreamingCall(getClientYieldMsgDataRequestMethod(), responseObserver);
     }
 
@@ -184,7 +179,7 @@ public final class DMQFollowerServiceGrpc {
      * </pre>
      */
     public void clientConsumeData(com.liangchen.DMQFollowerProto.ClientRegistToFollower request,
-        io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response> responseObserver) {
+        io.grpc.stub.StreamObserver<Response> responseObserver) {
       asyncUnimplementedUnaryCall(getClientConsumeDataMethod(), responseObserver);
     }
 
@@ -194,32 +189,32 @@ public final class DMQFollowerServiceGrpc {
      * </pre>
      */
     public void clientCloseChannel(com.liangchen.DMQFollowerProto.ClientRegistToFollower request,
-        io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response> responseObserver) {
+        io.grpc.stub.StreamObserver<Response> responseObserver) {
       asyncUnimplementedUnaryCall(getClientCloseChannelMethod(), responseObserver);
     }
 
-    @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
+    @Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
             getClientYieldMsgDataRequestMethod(),
             asyncClientStreamingCall(
               new MethodHandlers<
-                com.liangchen.DMQFollowerProto.MessageData,
-                com.liangchen.DMQFollowerProto.Response>(
+                MessageData,
+                Response>(
                   this, METHODID_CLIENT_YIELD_MSG_DATA_REQUEST)))
           .addMethod(
             getClientConsumeDataMethod(),
             asyncServerStreamingCall(
               new MethodHandlers<
                 com.liangchen.DMQFollowerProto.ClientRegistToFollower,
-                com.liangchen.DMQFollowerProto.Response>(
+                Response>(
                   this, METHODID_CLIENT_CONSUME_DATA)))
           .addMethod(
             getClientCloseChannelMethod(),
             asyncUnaryCall(
               new MethodHandlers<
                 com.liangchen.DMQFollowerProto.ClientRegistToFollower,
-                com.liangchen.DMQFollowerProto.Response>(
+                Response>(
                   this, METHODID_CLIENT_CLOSE_CHANNEL)))
           .build();
     }
@@ -233,7 +228,7 @@ public final class DMQFollowerServiceGrpc {
       super(channel, callOptions);
     }
 
-    @java.lang.Override
+    @Override
     protected DMQFollowerServiceStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new DMQFollowerServiceStub(channel, callOptions);
@@ -244,8 +239,8 @@ public final class DMQFollowerServiceGrpc {
      * 客户端向 follower 发送数据
      * </pre>
      */
-    public io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.MessageData> clientYieldMsgDataRequest(
-        io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response> responseObserver) {
+    public io.grpc.stub.StreamObserver<MessageData> clientYieldMsgDataRequest(
+        io.grpc.stub.StreamObserver<Response> responseObserver) {
       return asyncClientStreamingCall(
           getChannel().newCall(getClientYieldMsgDataRequestMethod(), getCallOptions()), responseObserver);
     }
@@ -256,7 +251,7 @@ public final class DMQFollowerServiceGrpc {
      * </pre>
      */
     public void clientConsumeData(com.liangchen.DMQFollowerProto.ClientRegistToFollower request,
-        io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response> responseObserver) {
+        io.grpc.stub.StreamObserver<Response> responseObserver) {
       asyncServerStreamingCall(
           getChannel().newCall(getClientConsumeDataMethod(), getCallOptions()), request, responseObserver);
     }
@@ -267,7 +262,7 @@ public final class DMQFollowerServiceGrpc {
      * </pre>
      */
     public void clientCloseChannel(com.liangchen.DMQFollowerProto.ClientRegistToFollower request,
-        io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response> responseObserver) {
+        io.grpc.stub.StreamObserver<Response> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getClientCloseChannelMethod(), getCallOptions()), request, responseObserver);
     }
@@ -281,7 +276,7 @@ public final class DMQFollowerServiceGrpc {
       super(channel, callOptions);
     }
 
-    @java.lang.Override
+    @Override
     protected DMQFollowerServiceBlockingStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new DMQFollowerServiceBlockingStub(channel, callOptions);
@@ -292,7 +287,7 @@ public final class DMQFollowerServiceGrpc {
      * 客户端消费数据
      * </pre>
      */
-    public java.util.Iterator<com.liangchen.DMQFollowerProto.Response> clientConsumeData(
+    public java.util.Iterator<Response> clientConsumeData(
         com.liangchen.DMQFollowerProto.ClientRegistToFollower request) {
       return blockingServerStreamingCall(
           getChannel(), getClientConsumeDataMethod(), getCallOptions(), request);
@@ -303,7 +298,7 @@ public final class DMQFollowerServiceGrpc {
      * 客户端关闭管道
      * </pre>
      */
-    public com.liangchen.DMQFollowerProto.Response clientCloseChannel(com.liangchen.DMQFollowerProto.ClientRegistToFollower request) {
+    public Response clientCloseChannel(com.liangchen.DMQFollowerProto.ClientRegistToFollower request) {
       return blockingUnaryCall(
           getChannel(), getClientCloseChannelMethod(), getCallOptions(), request);
     }
@@ -317,7 +312,7 @@ public final class DMQFollowerServiceGrpc {
       super(channel, callOptions);
     }
 
-    @java.lang.Override
+    @Override
     protected DMQFollowerServiceFutureStub build(
         io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new DMQFollowerServiceFutureStub(channel, callOptions);
@@ -328,7 +323,7 @@ public final class DMQFollowerServiceGrpc {
      * 客户端关闭管道
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<com.liangchen.DMQFollowerProto.Response> clientCloseChannel(
+    public com.google.common.util.concurrent.ListenableFuture<Response> clientCloseChannel(
         com.liangchen.DMQFollowerProto.ClientRegistToFollower request) {
       return futureUnaryCall(
           getChannel().newCall(getClientCloseChannelMethod(), getCallOptions()), request);
@@ -352,31 +347,31 @@ public final class DMQFollowerServiceGrpc {
       this.methodId = methodId;
     }
 
-    @java.lang.Override
-    @java.lang.SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_CLIENT_CONSUME_DATA:
           serviceImpl.clientConsumeData((com.liangchen.DMQFollowerProto.ClientRegistToFollower) request,
-              (io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response>) responseObserver);
+              (io.grpc.stub.StreamObserver<Response>) responseObserver);
           break;
         case METHODID_CLIENT_CLOSE_CHANNEL:
           serviceImpl.clientCloseChannel((com.liangchen.DMQFollowerProto.ClientRegistToFollower) request,
-              (io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response>) responseObserver);
+              (io.grpc.stub.StreamObserver<Response>) responseObserver);
           break;
         default:
           throw new AssertionError();
       }
     }
 
-    @java.lang.Override
-    @java.lang.SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings("unchecked")
     public io.grpc.stub.StreamObserver<Req> invoke(
         io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_CLIENT_YIELD_MSG_DATA_REQUEST:
           return (io.grpc.stub.StreamObserver<Req>) serviceImpl.clientYieldMsgDataRequest(
-              (io.grpc.stub.StreamObserver<com.liangchen.DMQFollowerProto.Response>) responseObserver);
+              (io.grpc.stub.StreamObserver<Response>) responseObserver);
         default:
           throw new AssertionError();
       }
@@ -387,12 +382,12 @@ public final class DMQFollowerServiceGrpc {
       implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
     DMQFollowerServiceBaseDescriptorSupplier() {}
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return com.liangchen.DMQFollowerProto.DMQFollowerProto.getDescriptor();
+      return DMQFollowerProto.getDescriptor();
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
       return getFileDescriptor().findServiceByName("DMQFollowerService");
     }
@@ -412,7 +407,7 @@ public final class DMQFollowerServiceGrpc {
       this.methodName = methodName;
     }
 
-    @java.lang.Override
+    @Override
     public com.google.protobuf.Descriptors.MethodDescriptor getMethodDescriptor() {
       return getServiceDescriptor().findMethodByName(methodName);
     }

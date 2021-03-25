@@ -17,7 +17,7 @@ public interface ResponseOrBuilder extends
    * <code>string errmsg = 2;</code>
    * @return The errmsg.
    */
-  java.lang.String getErrmsg();
+  String getErrmsg();
   /**
    * <code>string errmsg = 2;</code>
    * @return The bytes for errmsg.
@@ -34,9 +34,9 @@ public interface ResponseOrBuilder extends
    * <code>.DMQFollower.MessageData data = 3;</code>
    * @return The data.
    */
-  com.liangchen.DMQFollowerProto.MessageData getData();
+  MessageData getData();
   /**
    * <code>.DMQFollower.MessageData data = 3;</code>
    */
-  com.liangchen.DMQFollowerProto.MessageDataOrBuilder getDataOrBuilder();
+  MessageDataOrBuilder getDataOrBuilder();
 }

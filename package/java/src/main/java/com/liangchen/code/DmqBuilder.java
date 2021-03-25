@@ -9,10 +9,10 @@ public class DmqBuilder{
         this.port = port;
     }
 
-    public  DmqObject buildConsumer(String topic, String group){
-        return new DmqObject(this.host,this.port,"consumer",topic,group);
+    public  DmqObject buildConsumer(String topic, String group, String key){
+        return new DmqObject(this.host,this.port,"consumer",topic,group,key);
     }
-    public  DmqObject buildProducer(String topic){
-        return new DmqObject(this.host,this.port,"producer",topic,"");
+    public  DmqObject buildProducer(String topic, String key){
+        return new DmqObject(this.host,this.port,"producer",topic,"",key);
     }
 }

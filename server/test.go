@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 )
 
@@ -30,6 +29,8 @@ var paths []string = []string{
 	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
 	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
 	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
+
+	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\cachecenter\\data",
 }
 
 func a() {
@@ -40,13 +41,8 @@ func a() {
 		}
 		file.Close()
 	}
+	os.Remove("D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\cachecenter\\data")
 }
 func main() {
-	fmt.Println(rand.Intn(3))
-	fmt.Println(rand.Intn(3))
-	fmt.Println(rand.Intn(3))
-	fmt.Println(rand.Intn(3))
-	fmt.Println(rand.Intn(3))
-	fmt.Println(rand.Intn(3))
-	fmt.Println(rand.Intn(3))
+	a()
 }

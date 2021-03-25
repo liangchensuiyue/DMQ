@@ -16,18 +16,20 @@ public class DmqObject {
     private int    port;
     private String consumerGroup;
     private String topic;
+    private String key;
     public receiveHandler receiveCall = null;
     public completeHandler completeCall = null;
     public errorHandler errorCall = null;
 
     public StreamObserver<MessageData> produce = null;
 
-    public DmqObject(String host, int port,String type,String topic, String consumerGroup) {
+    public DmqObject(String host, int port,String type,String topic, String consumerGroup, String key) {
         this.type = type;
         this.host = host;
         this.port = port;
         this.consumerGroup = consumerGroup;
         this.topic = topic;
+        this.key = key;
     }
     public void receive(receiveHandler handler){
         this.receiveCall = handler;
@@ -76,7 +78,7 @@ public class DmqObject {
                 }
             };
             // 只要客户端以流式数据请求时,那么只能非阻塞(异步)来接收数据(不能用blockingStub了)
-            ClientRegistToFollower request = ClientRegistToFollower.newBuilder().setGroupname(this.getConsumerGroup()).setTopic(this.getTopic()).setNodeid(UUID.randomUUID().toString()).build();
+            ClientRegistToFollower request = ClientRegistToFollower.newBuilder().setGroupname(this.getConsumerGroup()).setTopic(this.getTopic()).setNodeid(UUID.randomUUID().toString()).setKey(this.getKey()).build();
             stub.clientConsumeData(request,DmqConsumerStreamObserver);
 
         }else if(this.type.equals("producer")){
@@ -131,7 +133,7 @@ public class DmqObject {
             throw  new Exception("当前类型是消费者,不能生产数据");
         }
         if (this.type.equals("producer")){
-            this.produce.onNext(MessageData.newBuilder().setMessage(message).setTopic(this.topic).build());
+            this.produce.onNext(MessageData.newBuilder().setMessage(message).setTopic(this.topic).setKey(this.key).build());
         }
     }
     public String getType() {
@@ -140,6 +142,9 @@ public class DmqObject {
 
     public String getHost() {
         return host;
+    }
+    public String getKey() {
+        return key;
     }
 
     public int getPort() {

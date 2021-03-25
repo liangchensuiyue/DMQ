@@ -15,7 +15,7 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string nodeid = 1;</code>
    * @return The nodeid.
    */
-  java.lang.String getNodeid();
+  String getNodeid();
   /**
    * <pre>
    * 节点id
@@ -35,7 +35,7 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string groupname = 2;</code>
    * @return The groupname.
    */
-  java.lang.String getGroupname();
+  String getGroupname();
   /**
    * <pre>
    * 消费者组名
@@ -55,7 +55,7 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string topic = 3;</code>
    * @return The topic.
    */
-  java.lang.String getTopic();
+  String getTopic();
   /**
    * <pre>
    * 话题名称
@@ -75,7 +75,7 @@ public interface ClientRegistToFollowerOrBuilder extends
    * <code>string key = 4;</code>
    * @return The key.
    */
-  java.lang.String getKey();
+  String getKey();
   /**
    * <pre>
    * 密钥

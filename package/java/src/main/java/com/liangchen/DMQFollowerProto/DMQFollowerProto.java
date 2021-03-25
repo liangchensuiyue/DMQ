@@ -42,7 +42,7 @@ public final class DMQFollowerProto {
   private static  com.google.protobuf.Descriptors.FileDescriptor
       descriptor;
   static {
-    java.lang.String[] descriptorData = {
+    String[] descriptorData = {
       "\n\016follower.proto\022\013DMQFollower\"7\n\026Followe" +
       "rRegistToHeader\022\017\n\007address\030\001 \001(\t\022\014\n\004port" +
       "\030\002 \001(\005\"W\n\026ClientRegistToFollower\022\016\n\006node" +
@@ -71,25 +71,25 @@ public final class DMQFollowerProto {
     internal_static_DMQFollower_FollowerRegistToHeader_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_FollowerRegistToHeader_descriptor,
-        new java.lang.String[] { "Address", "Port", });
+        new String[] { "Address", "Port", });
     internal_static_DMQFollower_ClientRegistToFollower_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_DMQFollower_ClientRegistToFollower_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_ClientRegistToFollower_descriptor,
-        new java.lang.String[] { "Nodeid", "Groupname", "Topic", "Key", });
+        new String[] { "Nodeid", "Groupname", "Topic", "Key", });
     internal_static_DMQFollower_MessageData_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_DMQFollower_MessageData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_MessageData_descriptor,
-        new java.lang.String[] { "Topic", "Message", "Length", "Des", "Key", });
+        new String[] { "Topic", "Message", "Length", "Des", "Key", });
     internal_static_DMQFollower_Response_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_DMQFollower_Response_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_DMQFollower_Response_descriptor,
-        new java.lang.String[] { "Errno", "Errmsg", "Data", });
+        new String[] { "Errno", "Errmsg", "Data", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
