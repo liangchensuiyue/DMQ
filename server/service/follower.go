@@ -334,8 +334,8 @@ func startWebsocket(conf *utils.MyConfig) {
 	http.Handle("/consumer", websocket.Handler(ws_consumer))
 	http.Handle("/producer", websocket.Handler(ws_producer))
 	if err := http.ListenAndServe(conf.G_Ws_Address, nil); err != nil {
-		mylog.Error("error: " + err.Error())
-		os.Exit(0)
+		mylog.Info("websoket server fail to launch" + err.Error())
+		// os.Exit(0)
 	}
 }
 
