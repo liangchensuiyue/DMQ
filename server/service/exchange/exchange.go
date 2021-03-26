@@ -24,6 +24,7 @@ type HeaderNodeInfo struct {
 	CurrentTxId    string
 	Service        headerpd.DMQHeaderServiceClient
 	MasterAddress  string
+	MasterNodeId   int32
 	RegisterTopics []string
 }
 
@@ -107,10 +108,12 @@ func GetQuorumInfo() []*HeaderNodeInfo {
 		_headers[i].Weight = info.Weight
 		_headers[i].CurrentTxId = info.CurrentTxId
 		_headers[i].MasterAddress = info.MasterAddress
+		_headers[i].MasterNodeId= info.MasterNodeId
 		_headers[i].RegisterTopics = info.RegisterTopics
 
 		if _headers[i].MasterAddress != "" {
 			selfHeaderInfo.MasterAddress = _headers[i].MasterAddress
+			selfHeaderInfo.MasterNodeId= _headers[i].MasterNodeId
 		}
 		headers = append(headers, _headers[i])
 
@@ -131,12 +134,12 @@ func GetMaster() {
 	if selfHeaderInfo.MasterAddress != "" {
 		// 集群中已存在master
 		for i := 0; i < len(headers); i++ {
-			if fmt.Sprintf("%s:%d", headers[i].Address, headers[i].Port) == selfHeaderInfo.MasterAddress {
+			if headers[i].MasterNodeId == selfHeaderInfo.MasterNodeId{
 				current_master = headers[i]
 				break
 			}
 		}
-		if selfHeaderInfo.MasterAddress == fmt.Sprintf("%s:%d", selfHeaderInfo.Address, selfHeaderInfo.Port) {
+		if selfHeaderInfo.MasterNodeId== selfHeaderInfo.NodeId{
 			current_master = selfHeaderInfo
 		}
 		cluster_status = "operation"
@@ -151,6 +154,7 @@ func GetMaster() {
 		if len(headers) == 0 {
 			current_master = selfHeaderInfo
 			selfHeaderInfo.MasterAddress = fmt.Sprintf("%s:%d", current_master.Address, current_master.Port)
+			selfHeaderInfo.MasterNodeId= current_master.NodeId
 			cluster_status = "operation"
 			return
 		}
@@ -169,6 +173,7 @@ func GetMaster() {
 		if len(candidates1) == 1 {
 			current_master = candidates1[0]
 			selfHeaderInfo.MasterAddress = fmt.Sprintf("%s:%d", current_master.Address, current_master.Port)
+			selfHeaderInfo.MasterNodeId= current_master.NodeId
 			cluster_status = "operation"
 			return
 		}
@@ -186,6 +191,7 @@ func GetMaster() {
 		if len(candidates2) == 1 {
 			current_master = candidates2[0]
 			selfHeaderInfo.MasterAddress = fmt.Sprintf("%s:%d", current_master.Address, current_master.Port)
+			selfHeaderInfo.MasterNodeId= current_master.NodeId
 			cluster_status = "operation"
 
 			return
@@ -197,6 +203,7 @@ func GetMaster() {
 			}
 		}
 		selfHeaderInfo.MasterAddress = fmt.Sprintf("%s:%d", current_master.Address, current_master.Port)
+		selfHeaderInfo.MasterNodeId= current_master.NodeId
 		cluster_status = "operation"
 
 	}
@@ -217,7 +224,7 @@ func broadcastHeaderEnter() {
 			CurrentTxId:    selfHeaderInfo.CurrentTxId,
 			RegisterTopics: selfHeaderInfo.RegisterTopics,
 		})
-		if err != nil && current_master.Address == headers[i].Address && current_master.Port == headers[i].Port {
+		if err != nil && current_master.NodeId== headers[i].NodeId {
 			mylog.Error("加入集群失败 " + err.Error())
 			os.Exit(0)
 		}
@@ -290,6 +297,7 @@ func PingPongMaster() {
 		MasterFailNum++
 		if MasterFailNum >= 3 {
 			selfHeaderInfo.MasterAddress = ""
+			selfHeaderInfo.MasterNodeId=-1
 			GetMaster()
 			mylog.Info(fmt.Sprintf("当前master: %s:%d", current_master.Address, current_master.Port))
 			if current_master.Address == selfHeaderInfo.Address && current_master.Port == selfHeaderInfo.Port {

@@ -99,7 +99,8 @@ message HeaderInfo{
 	int32 Weight      = 4;
 	string CurrentTxId =5; 
     string MasterAddress     =6;
-    repeated string RegisterTopics =7;
+    int32 MasterNodeId		=7;
+    repeated string RegisterTopics =8;
 }
 
 message ProofClient{

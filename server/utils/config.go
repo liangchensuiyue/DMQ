@@ -53,11 +53,13 @@ func InitConfig(configpath string) *MyConfig {
 	}
 	myconfig.G_Current_Platform = runtime.GOOS
 	myconfig.G_Ws_Address = appconf.String("ws_addr") + ":" + appconf.String("ws_port")
-	myconfig.G_Header_Address = appconf.String("header_address")
-	myconfig.G_Header_Port, err = appconf.Int("header_port")
-	if err != nil {
-		mylog.Error("config: " + err.Error())
-		os.Exit(0)
+	if myconfig.G_Node_Type == "follower"{
+		myconfig.G_Header_Address = appconf.String("header_address")
+		myconfig.G_Header_Port, err = appconf.Int("header_port")
+		if err != nil {
+			mylog.Error("config: " + err.Error())
+			os.Exit(0)
+		}
 	}
 
 	if myconfig.G_Node_Type == "header" {

@@ -3,14 +3,10 @@ package mylog
 import (
 	"fmt"
 	"runtime"
-	"syscall"
 )
 
 var (
 	G_Current_Platform string
-	kernel32           *syscall.LazyDLL  = syscall.NewLazyDLL(`kernel32.dll`)
-	proc               *syscall.LazyProc = kernel32.NewProc(`SetConsoleTextAttribute`)
-	CloseHandle        *syscall.LazyProc = kernel32.NewProc(`CloseHandle`)
 
 	// 给字体颜色对象赋值
 	FontColor Color = Color{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
@@ -80,20 +76,9 @@ func textColor(color int, str string) string {
 	return fmt.Sprintf("\x1b[0;%dm%s\x1b[0m", color, str)
 }
 
-// win 	输出有颜色的字体
-func ColorPrint(s string, i int) {
-	handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(i))
-	print(s)
-	CloseHandle.Call(handle)
-}
 
 func Error(msg string) {
 	if G_Current_Platform == "windows" {
-		handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.red))
-		fmt.Println(msg)
-		CloseHandle.Call(handle)
-		handle, _, _ = proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.white))
-		CloseHandle.Call(handle)
 	} else {
 		fmt.Println(Red(msg))
 	}
@@ -101,35 +86,18 @@ func Error(msg string) {
 
 func Warning(msg string) {
 	if G_Current_Platform == "windows" {
-		handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.yellow))
-		fmt.Println(msg)
-		CloseHandle.Call(handle)
-		handle, _, _ = proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.white))
-		CloseHandle.Call(handle)
 	} else {
 		fmt.Println(Yellow(msg))
 	}
 }
 func Success(msg string) {
 	if G_Current_Platform == "windows" {
-		handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.green))
-		fmt.Println(msg)
-		CloseHandle.Call(handle)
-
-		handle, _, _ = proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.white))
-		CloseHandle.Call(handle)
 	} else {
 		fmt.Println(Green(msg))
 	}
 }
 func Info(msg string) {
 	if G_Current_Platform == "windows" {
-		handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.blue))
-		fmt.Println(msg)
-		CloseHandle.Call(handle)
-
-		handle, _, _ = proc.Call(uintptr(syscall.Stdout), uintptr(FontColor.white))
-		CloseHandle.Call(handle)
 	} else {
 		fmt.Println(Blue(msg))
 	}

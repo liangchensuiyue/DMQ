@@ -6,31 +6,31 @@ import (
 )
 
 var paths []string = []string{
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header1\\current",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header1\\finish_tx",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header1\\unfinish_tx",
+	"/server/project/dmq/DMQ/server/tx/header1/current",
+	"/server/project/dmq/DMQ/server/tx/header1/finish_tx",
+	"/server/project/dmq/DMQ/server/tx/header1/unfinish_tx",
 
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header2\\current",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header2\\finish_tx",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header2\\unfinish_tx",
+	"/server/project/dmq/DMQ/server/tx/header2/current",
+	"/server/project/dmq/DMQ/server/tx/header2/finish_tx",
+	"/server/project/dmq/DMQ/server/tx/header2/unfinish_tx",
 
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header3\\current",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header3\\finish_tx",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\tx\\header3\\unfinish_tx",
+	"/server/project/dmq/DMQ/server/tx/header3/current",
+	"/server/project/dmq/DMQ/server/tx/header3/finish_tx",
+	"/server/project/dmq/DMQ/server/tx/header3/unfinish_tx",
 
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header1\\phone\\data",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header1\\phone\\data",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header1\\phone\\data",
+	"/server/project/dmq/DMQ/server/data/header1/phone/data",
+	"/server/project/dmq/DMQ/server/data/header1/phone/data",
+	"/server/project/dmq/DMQ/server/data/header1/phone/data",
 
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header2\\phone\\data",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header2\\phone\\data",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header2\\phone\\data",
+	"/server/project/dmq/DMQ/server/data/header2/phone/data",
+	"/server/project/dmq/DMQ/server/data/header2/phone/data",
+	"/server/project/dmq/DMQ/server/data/header2/phone/data",
 
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\server\\data\\header3\\phone\\data",
+	"/server/project/dmq/DMQ/server/data/header3/phone/data",
+	"/server/project/dmq/DMQ/server/data/header3/phone/data",
+	"/server/project/dmq/DMQ/server/data/header3/phone/data",
 
-	"D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\cachecenter\\data",
+	"/server/project/dmq/DMQ/cachecenter/data",
 }
 
 func a() {
@@ -41,7 +41,7 @@ func a() {
 		}
 		file.Close()
 	}
-	os.Remove("D:\\gaodongsheng\\goproject\\src\\go_code\\DMQ\\DMQ\\cachecenter\\data")
+	os.Remove("/server/project/dmq/DMQ/cachecenter/data")
 }
 func main() {
 	a()

@@ -154,7 +154,9 @@ func (this *server) BroadcastMaster(ctx context.Context, request *headerpd.Heade
 		Weight:        request.Weight,
 		CurrentTxId:   request.CurrentTxId,
 		MasterAddress: fmt.Sprintf("%s:%d", request.Address, request.Port),
+		MasterNodeId: request.NodeId,
 	}
+	exchange.GetSelfHeaderInfo().MasterNodeId=request.NodeId
 	master.Service = headerpd.NewDMQHeaderServiceClient(conn)
 
 	exchange.SetCurrentMaster(master)
@@ -352,6 +354,7 @@ func (this *server) EnterCluster(ctx context.Context, request *headerpd.HeaderIn
 		Weight:        request.Weight,
 		CurrentTxId:   request.CurrentTxId,
 		MasterAddress: request.MasterAddress,
+		MasterNodeId: request.MasterNodeId,
 		Service:       headerpd.NewDMQHeaderServiceClient(conn),
 	})
 
@@ -366,6 +369,7 @@ func (this *server) GetHeaderInfoRequest(ctx context.Context, request *headerpd.
 	out.Weight = info.Weight
 	out.CurrentTxId = info.CurrentTxId
 	out.MasterAddress = info.MasterAddress
+	out.MasterNodeId= info.MasterNodeId
 	out.RegisterTopics = HeaderNodeTopicSet
 
 	return out, nil
