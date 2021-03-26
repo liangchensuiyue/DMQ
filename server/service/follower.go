@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -330,6 +331,101 @@ func acceptData() {
 		}
 	}
 }
+func startHttpPort(conf *utils.MyConfig) {
+	http.HandleFunc("/produce", httpProducer)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", conf.G_Http_Address, conf.G_Http_Port), nil)
+	if err != nil {
+		mylog.Info("http producer fail to launch")
+	}
+}
+func httpProducer(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		e := recover()
+		if e != nil {
+			buf, _ := json.Marshal(&map[string]interface{}{
+				"Errno":  1,
+				"Errmsg": "异常抛出",
+			})
+			w.Write(buf)
+		}
+
+	}()
+	w.Header().Add("Content-Type", "applicatoin/json")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+
+	// 只支持 post 方法
+	if r.Method == http.MethodPost {
+		var data map[string]interface{} = make(map[string]interface{}, 0)
+		requestbuf := make([]byte, 1500)
+		n, err := r.Body.Read(requestbuf)
+		if err != nil && err != io.EOF {
+			buf, _ := json.Marshal(&map[string]interface{}{
+				"Errno":  1,
+				"Errmsg": err.Error(),
+			})
+			w.Write(buf)
+			return
+		}
+		/*
+			data {
+				Key:""
+				Msg:""
+				Topic:""
+			}
+		*/
+		json.Unmarshal(requestbuf[:n], &data)
+		if data["Topic"].(string) == "" || data["Msg"].(string) == "" {
+			buf, _ := json.Marshal(&map[string]interface{}{
+				"Errno":  1,
+				"Errmsg": "密钥错误",
+			})
+			w.Write(buf)
+			return
+		}
+
+		key := data["Key"].(string) // 客户端密钥
+		_res, rerr := headerService.ProofClientRequest(context.Background(), &headerpd.ProofClient{
+			Key: key,
+		})
+		if rerr != nil || _res.Errno == 1 {
+			buf, _ := json.Marshal(&map[string]interface{}{
+				"Errno":  1,
+				"Errmsg": "密钥错误",
+			})
+			w.Write(buf)
+			return
+		}
+
+		res, err := headerService.FollowerYieldMsgDataRequest(context.Background())
+		if err != nil {
+			buf, _ := json.Marshal(&map[string]interface{}{
+				"Errno":  1,
+				"Errmsg": err.Error(),
+			})
+			w.Write(buf)
+			return
+		}
+		// 将客户端的生产的数据转发给 header
+		// SendLock.Lock()
+		err1 := res.Send(&headerpd.MessageData{Topic: data["Topic"].(string), Message: data["Msg"].(string)})
+		// SendLock.Unlock()
+		if err1 != nil {
+			res, _ := json.Marshal(&map[string]interface{}{
+				"Errno":  1,
+				"Errmsg": err1.Error(),
+			})
+			w.Write(res)
+			return
+		}
+		// 发给 header 节点
+		buf, _ := json.Marshal(&map[string]interface{}{
+			"Errno":  0,
+			"Errmsg": "success",
+		})
+		w.Write(buf)
+		return
+	}
+}
 func startWebsocket(conf *utils.MyConfig) {
 	http.Handle("/consumer", websocket.Handler(ws_consumer))
 	http.Handle("/producer", websocket.Handler(ws_producer))
@@ -436,6 +532,7 @@ func StartFollower(conf *utils.MyConfig) {
 	go receiveHeaderData()
 	go acceptData()
 	go startWebsocket(conf)
+	go startHttpPort(conf)
 	linkCache(conf)
 
 	//创建网络

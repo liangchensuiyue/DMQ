@@ -37,7 +37,7 @@ cluster_status
 	vote  正在选举
 	operation  正在运行
 */
-var cluster_status string
+var cluster_status string = "vote"
 var current_master *HeaderNodeInfo
 var SelfIsMaster bool = false
 var lock *sync.Mutex = &sync.Mutex{}

@@ -503,12 +503,14 @@ func delTopic(topic string) {
 				HeaderNodeTopicSet = HeaderNodeTopicSet[:i]
 				HeaderNodeTopicSet = append(HeaderNodeTopicSet, HeaderNodeTopicSet[i+1:]...)
 			}
-			self := exchange.GetSelfHeaderInfo()
-			exchange.GetCurrentMaster().Service.Register2Master(context.Background(), &headerpd.RegisterTopics{
-				Address: self.Address,
-				Port:    self.Port,
-				Topics:  HeaderNodeTopicSet,
-			})
+			if !exchange.SelfIsMaster {
+				self := exchange.GetSelfHeaderInfo()
+				exchange.GetCurrentMaster().Service.Register2Master(context.Background(), &headerpd.RegisterTopics{
+					Address: self.Address,
+					Port:    self.Port,
+					Topics:  HeaderNodeTopicSet,
+				})
+			}
 		}
 	}
 }
@@ -521,15 +523,21 @@ func addTopic(topic string) {
 	}
 	HeaderNodeTopicSet = append(HeaderNodeTopicSet, topic)
 
-	self := exchange.GetSelfHeaderInfo()
-	exchange.GetCurrentMaster().Service.Register2Master(context.Background(), &headerpd.RegisterTopics{
-		Address: self.Address,
-		Port:    self.Port,
-		Topics:  HeaderNodeTopicSet,
-	})
+	if !exchange.SelfIsMaster {
+		self := exchange.GetSelfHeaderInfo()
+		exchange.GetCurrentMaster().Service.Register2Master(context.Background(), &headerpd.RegisterTopics{
+			Address: self.Address,
+			Port:    self.Port,
+			Topics:  HeaderNodeTopicSet,
+		})
+	}
 
 }
 func (this *server) FollowerToHeaderRequestDataRequest(in headerpd.DMQHeaderService_FollowerToHeaderRequestDataRequestServer) error {
+	if exchange.GetCluterStatus() == "vote" {
+		in.Send(&headerpd.Response{Errno: 1, Errmsg: "集群处在 vote 状态"})
+		return nil
+	}
 	var address string
 	var port int32
 	flag := false
@@ -731,6 +739,12 @@ func PrepareSend() {
 			writeDataToTopic(prepareTx.Topic, prepareTx.Msg)
 			tx.SaveTx(prepareTx)
 			tx.WriteCurrentTxId(prepareTx.TxId)
+			TriggerHeaderConsume(&headerpd.MessageData{
+				Length:  int64(len([]byte(prepareTx.Topic)) + 1),
+				Topic:   prepareTx.Topic,
+				Message: prepareTx.Msg,
+				Des:     "",
+			})
 			continue
 		}
 		prepareSuccessNode = make([]*exchange.HeaderNodeInfo, 0)
@@ -794,17 +808,26 @@ func TriggerHeaderConsume(data *headerpd.MessageData) {
 		return
 	}
 	if len(_headers) == 1 {
-		_, err := _headers[0].Service.TriggerConsumeTopic(context.Background(), data)
-		if err != nil {
-			return
+		if _headers[0].Address == exchange.GetSelfHeaderInfo().Address && _headers[0].Port == exchange.GetSelfHeaderInfo().Port {
+			msgChan <- *data
+		} else {
+			_, err := _headers[0].Service.TriggerConsumeTopic(context.Background(), data)
+			if err != nil {
+				return
+			}
 		}
+
 	} else {
 		index := rand.Intn(len(_headers))
 		// fmt.Println("send data", data)
-
-		_, err := _headers[index].Service.TriggerConsumeTopic(context.Background(), data)
-		if err != nil {
-			return
+		var err error
+		if _headers[index].Address == exchange.GetSelfHeaderInfo().Address && _headers[index].Port == exchange.GetSelfHeaderInfo().Port {
+			msgChan <- *data
+		} else {
+			_, err = _headers[index].Service.TriggerConsumeTopic(context.Background(), data)
+			if err != nil {
+				return
+			}
 		}
 	}
 }

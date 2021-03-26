@@ -25,6 +25,8 @@ type MyConfig struct {
 	G_Max_Register                    int // follower 最大注册消费者数
 	G_Ws_Address                      string
 	G_Node_Id                         int
+	G_Http_Address                    string
+	G_Http_Port                       int
 	G_Weight                          int
 	G_Quorum                          []string
 	G_Tx_Dir                          string
@@ -108,6 +110,12 @@ func InitConfig(configpath string) *MyConfig {
 	if myconfig.G_Node_Type == "follower" {
 		myconfig.G_Cache_Address = appconf.String("cache_address")
 		myconfig.G_Cache_Port, err = appconf.Int("cache_port")
+		if err != nil {
+			mylog.Error("config: " + err.Error())
+		}
+
+		myconfig.G_Http_Address = appconf.String("http_addr")
+		myconfig.G_Http_Port, err = appconf.Int("http_port")
 		if err != nil {
 			mylog.Error("config: " + err.Error())
 		}

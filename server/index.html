@@ -7,7 +7,7 @@
     var sock = null;
     // var wsuri = "wss://127.0.0.1:8080"; //本地的地址 是可以改变的哦
      var wsuri = "ws://127.0.0.1:8080/consumer"; //本地的地址 是可以改变的哦
-
+     var msgNum = 0
 
     window.onload = function() {
         var num = 0;
@@ -36,12 +36,25 @@
     };
      //如果sock被关闭掉了 这里 也会报错的啊
     function send() {
-        var obj = {
-            Groupname :"test",
-            Topic:"phone",
-            Key:"hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=",
+
+        var xhr = new XMLHttpRequest()
+        xhr.open("POST","http://127.0.0.1:8080/produce")
+        xhr.onload = function(res){
+            console.log(res.response)
         }
-        sock.send(JSON.stringify(obj));
+        xhr.send(JSON.stringify({
+            Topic:"phone",
+            Msg:""+Math.random() * 100,
+            Key:"hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM="
+        }))
+
+
+        // var obj = {
+        //     Groupname :"test",
+        //     Topic:"phone",
+        //     Key:"hxBA7bZlcJKE72kZ1adLmdnjhGx0Q+PgM3joSeLxcTM=",
+        // }
+        // sock.send(JSON.stringify(obj));
     };
 </script>
 <h1>GoWebSocketDemo</h1>

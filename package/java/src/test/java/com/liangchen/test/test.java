@@ -76,7 +76,7 @@ public class test {
 
             String a= in1.readLine();
             i++;
-            if(i ==20000){
+            if(i ==2000){
                 Thread.sleep(10000000);
                 break;
             }
